@@ -1,0 +1,13 @@
+/out
+/build
+/CMakeFiles
+/resources/references
+/CMakeCache.txt
+CMakeUserPresents.json
+.clang-format
+.cache
+
+.vscode
+
+
+.DS_Store
