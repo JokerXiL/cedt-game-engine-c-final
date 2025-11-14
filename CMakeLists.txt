@@ -4,7 +4,7 @@ project(OPENGL_APP)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# add libralies
+# add libraries
 find_package(glm CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)

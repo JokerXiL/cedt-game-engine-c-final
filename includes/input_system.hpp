@@ -1,3 +1,5 @@
+#pragma once
+
 class InputSystem {
 public:
     // Singleton instance
