@@ -1,21 +1,22 @@
-#include <iostream>
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-#include "scene.hpp"
-#include "input_system.hpp"
+
+#include <iostream>
+
+#include "state/title_screen.hpp"
+#include "window_system.hpp"
 
 int main() {
-    // todo init window
-    // todo init input_system;
+    WindowSystem::get_instance().init();
 
-    Transition t = Transition {
-        MAIN_GAME
-    };
+    std::optional<std::unique_ptr<State>> state =
+        std::make_unique<title_screen::TitleScreen>();
 
     while (true) {
-        switch (t.kind) {   
-            MAIN_GAME:
-                t = main_game();
+        if (state.has_value()) {
+            state = state.value()->run();
+        } else {
+            break;
         }
     }
 }
