@@ -1,7 +1,5 @@
 #include "input_system.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include "window_system.hpp"
 
 InputSystem& InputSystem::get_instance() {
@@ -33,13 +31,23 @@ void InputSystem::init() {
     glfwSetMouseButtonCallback(
         window, [](GLFWwindow* window, int button, int action, int mods) {
             InputSystem& input = InputSystem::get_instance();
-            if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                if (action == GLFW_PRESS) {
-                    input.set_right_mouse_pressed(true);
-                    input.set_first_mouse_move(true);
-                } else if (action == GLFW_RELEASE) {
-                    input.set_right_mouse_pressed(false);
-                }
-            }
+            // TODO
         });
+}
+
+void InputSystem::capture_mouse() {
+    auto* window = WindowSystem::get_instance().window();
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void InputSystem::release_mouse() {
+    auto* window = WindowSystem::get_instance().window();
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+void InputSystem::get_mouse_delta(float& dx, float& dy) {
+    dx = static_cast<float>(_mouse_x - _last_mouse_x);
+    dy = static_cast<float>(_mouse_y - _last_mouse_y);
+    _last_mouse_x = _mouse_x;
+    _last_mouse_y = _mouse_y;
 }
