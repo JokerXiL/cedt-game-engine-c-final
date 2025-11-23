@@ -1,6 +1,9 @@
 #pragma once
 
+#include <memory>
+
 class State {
 public:
-    virtual std::unique_ptr<State> run();
+    virtual ~State() = default;
+    virtual std::unique_ptr<State> run() = 0;
 };

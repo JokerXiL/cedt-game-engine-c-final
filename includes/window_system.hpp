@@ -1,10 +1,11 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
-const char* WINDOW_NAME = "Game";
+constexpr unsigned int SCR_WIDTH = 1280;
+constexpr unsigned int SCR_HEIGHT = 720;
+inline const char* WINDOW_NAME = "Game";
 
 class WindowSystem {
 public:
