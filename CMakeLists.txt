@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(OPENGL_APP)
+project(game)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,13 +18,13 @@ file(GLOB_RECURSE OPENGLAPP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-add_executable(OPENGL_APP ${OPENGLAPP_SOURCES}) # ${EXTRA_SOURCES}
+add_executable(game ${OPENGLAPP_SOURCES}) # ${EXTRA_SOURCES}
 
-target_include_directories(OPENGL_APP PUBLIC
+target_include_directories(game PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/includes
 )
 
-target_link_libraries(OPENGL_APP PUBLIC
+target_link_libraries(game PUBLIC
     glfw
     glm::glm
     glad::glad
