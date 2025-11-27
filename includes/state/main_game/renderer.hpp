@@ -4,7 +4,11 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-#include "shader.hpp"
+#include <memory>
+
+// Forward declarations
+class StandardMaterial;
+class Mesh;
 
 namespace main_game {
 
@@ -14,25 +18,21 @@ class Camera;
 class Renderer {
 public:
     Renderer();
-    ~Renderer();
+    ~Renderer();  // Must be defined in .cpp to delete unique_ptr of forward-declared types
 
     void render(const GameState& game_state, const Camera& camera, const glm::vec3& light_pos);
     void end_frame(GLFWwindow* window);
 
 private:
-    void init_graphics();
-    void cleanup();
-
-    Shader _shader;
     glm::mat4 _projection;
 
-    // Player cube
-    unsigned int _player_vao;
-    unsigned int _player_vbo;
+    // Materials
+    std::unique_ptr<StandardMaterial> _player_material;
+    std::unique_ptr<StandardMaterial> _ground_material;
 
-    // Ground
-    unsigned int _ground_vao;
-    unsigned int _ground_vbo;
+    // Meshes
+    std::unique_ptr<Mesh> _cube_mesh;
+    std::unique_ptr<Mesh> _ground_mesh;
 };
 
 } // namespace main_game
