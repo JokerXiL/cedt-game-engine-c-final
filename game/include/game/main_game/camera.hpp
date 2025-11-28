@@ -47,7 +47,7 @@ public:
     // Get right direction on XZ plane (for player movement)
     glm::vec3 right() const {
         float yaw_rad = glm::radians(_yaw);
-        return glm::normalize(glm::vec3(cos(yaw_rad), 0.0f, -sin(yaw_rad)));
+        return glm::normalize(glm::vec3(-cos(yaw_rad), 0.0f, sin(yaw_rad)));
     }
 
     float yaw() const { return _yaw; }
