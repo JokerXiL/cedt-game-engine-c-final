@@ -1,5 +1,4 @@
 #include <engine/window_system.hpp>
-
 #include <iostream>
 
 // Forward declaration
@@ -37,11 +36,29 @@ void WindowSystem::init() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
-
+    
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 }
 
+WindowSystem::~WindowSystem() {
+    if (_window) {
+        glfwSetKeyCallback(_window, nullptr);
+        glfwSetCursorPosCallback(_window, nullptr);
+        glfwSetMouseButtonCallback(_window, nullptr);
+        glfwSetFramebufferSizeCallback(_window, nullptr);
+
+        glfwDestroyWindow(_window);
+        _window = nullptr;
+    }
+    glfwTerminate();
+}
+
+bool WindowSystem::should_close() const {
+    return glfwWindowShouldClose(_window);
+}
+void WindowSystem::swap_buffer() { glfwSwapBuffers(_window); }
+void WindowSystem::poll_events() { glfwPollEvents(); }
 }  // namespace engine
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {

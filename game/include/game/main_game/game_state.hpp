@@ -1,25 +1,22 @@
 #pragma once
 
+#include <game/main_game/camera.hpp>
 #include <game/main_game/manager/enemy_manager.hpp>
 #include <game/main_game/manager/projectile_manager.hpp>
-#include <game/main_game/player.hpp>
 #include <game/main_game/map.hpp>
+#include <game/main_game/player.hpp>
 
 namespace main_game {
 class GameState {
 public:
-    void update();
+    ~GameState() = default;
 
-    // Getters
-    Player& player() { return _player; }
-    const Player& player() const { return _player; }
-    Map& map() { return _map; }
-    const Map& map() const { return _map; }
+    void update(float delta);
 
-private:
-    Player _player;
-    Map _map;
-    EnemyManager _enemy_manager;
-    ProjectileManager _projectile_manager;
+    Camera camera;
+    Player player;
+    Map map;
+    EnemyManager enemy_manager;
+    ProjectileManager projectile_manager;
 };
 }  // namespace main_game

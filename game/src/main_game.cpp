@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include <iostream>
 #include <memory>
 
 #include <game/game_summary.hpp>
@@ -14,33 +15,20 @@
 namespace main_game {
 
 std::unique_ptr<State> MainGame::run() {
-    // Get systems
-    GLFWwindow* window = engine::WindowSystem::get_instance().window();
-    engine::InputSystem& input = engine::InputSystem::get_instance();
+    auto& window_system = engine::WindowSystem::get_instance();
+    auto& input_system = engine::InputSystem::get_instance();
 
-    // Capture mouse for camera control
-    input.capture_mouse();
+    input_system.capture_mouse();
 
-    // Create game state, renderer, and camera
     GameState game_state;
     Renderer renderer;
-    Camera camera(8.0f, 25.0f, 0.0f);
 
-    // Light position
-    glm::vec3 light_pos(10.0f, 20.0f, 10.0f);
-
-    // Timing
     float delta_time = 0.0f;
     float last_frame = 0.0f;
 
-    // Main game loop
     while (true) {
-        if (glfwWindowShouldClose(window)) {
-            break;
-        }
-
         // Check for exit
-        if (input.is_key_pressed(GLFW_KEY_ESCAPE)) {
+        if (window_system.should_close() || input_system.is_key_pressed(GLFW_KEY_ESCAPE)) {
             break;
         }
 
@@ -49,24 +37,29 @@ std::unique_ptr<State> MainGame::run() {
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
-        // Process camera input
-        float dx, dy;
-        input.get_mouse_delta(dx, dy);
-        camera.process_mouse_movement(dx, dy);
+        // Process input
+        game_state.process_input();
 
-        // Process player input and update
-        game_state.player().process_input(camera, delta_time);
-        camera.set_target(game_state.player().position());
+        // Update
+        game_state.update(delta_time);
+
+        // Debug output
+        auto cam_pos = game_state.camera.position();
+        auto player_pos = game_state.player.position();
+        std::cout << "Camera: (" << cam_pos.x << ", " << cam_pos.y << ", " << cam_pos.z << ") "
+                  << "Player: (" << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << ")\n";
 
         // Render
-        renderer.render(game_state, camera, light_pos);
-        renderer.end_frame(window);
+        renderer.render(game_state);
+
+        window_system.swap_buffer();
+        window_system.poll_events();
     }
 
-    // Release mouse
-    input.release_mouse();
+    input_system.release_mouse();
 
-    return std::make_unique<game_summary::GameSummary>();
+    auto result = std::make_unique<game_summary::GameSummary>(); // todo
+    return result;
 }
 
 }  // namespace main_game

@@ -40,26 +40,28 @@ Renderer::Renderer()
     );
 }
 
-Renderer::~Renderer() {
-    // Destructor must be defined here so unique_ptr can delete complete types
-}
+Renderer::~Renderer() = default;
 
-void Renderer::render(const GameState& game_state, const Camera& camera, const glm::vec3& light_pos) {
+void Renderer::render(const GameState& game_state) {
+    const auto& camera = game_state.camera;
+
+    glm::vec3 light_pos(10.0f, 20.0f, 10.0f);
+
     // Clear screen
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update common material parameters
     _player_material->projection = _projection;
-    _player_material->view = camera.get_view_matrix();
+    _player_material->view = camera.view_matrix();
     _player_material->light_pos = light_pos;
-    _player_material->view_pos = camera.get_position();
+    _player_material->view_pos = camera.position();
     _player_material->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     _ground_material->projection = _projection;
-    _ground_material->view = camera.get_view_matrix();
+    _ground_material->view = camera.view_matrix();
     _ground_material->light_pos = light_pos;
-    _ground_material->view_pos = camera.get_position();
+    _ground_material->view_pos = camera.position();
     _ground_material->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     // Render ground
@@ -67,16 +69,11 @@ void Renderer::render(const GameState& game_state, const Camera& camera, const g
     _ground_material->render(*_ground_mesh, ground_model);
 
     // Render player
-    const Player& player = game_state.player();
+    const Player& player = game_state.player;
     glm::mat4 player_model = glm::mat4(1.0f);
     player_model = glm::translate(player_model, player.position());
     player_model = glm::rotate(player_model, player.rotation_y(), glm::vec3(0.0f, 1.0f, 0.0f));
     _player_material->render(*_cube_mesh, player_model);
-}
-
-void Renderer::end_frame(GLFWwindow* window) {
-    glfwSwapBuffers(window);
-    glfwPollEvents();
 }
 
 } // namespace main_game

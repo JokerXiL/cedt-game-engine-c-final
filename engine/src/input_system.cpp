@@ -10,7 +10,7 @@ InputSystem& InputSystem::get_instance() {
 }
 
 void InputSystem::init() {
-    auto* window = WindowSystem::get_instance().window();
+    auto* window = WindowSystem::get_instance()._window;
 
     // Set up GLFW callbacks using lambda functions
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode,
@@ -38,12 +38,12 @@ void InputSystem::init() {
 }
 
 void InputSystem::capture_mouse() {
-    auto* window = WindowSystem::get_instance().window();
+    auto* window = WindowSystem::get_instance()._window;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void InputSystem::release_mouse() {
-    auto* window = WindowSystem::get_instance().window();
+    auto* window = WindowSystem::get_instance()._window;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 

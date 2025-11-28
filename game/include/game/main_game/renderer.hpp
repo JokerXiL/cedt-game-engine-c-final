@@ -20,10 +20,9 @@ class Camera;
 class Renderer {
 public:
     Renderer();
-    ~Renderer();  // Must be defined in .cpp to delete unique_ptr of forward-declared types
+    ~Renderer();
 
-    void render(const GameState& game_state, const Camera& camera, const glm::vec3& light_pos);
-    void end_frame(GLFWwindow* window);
+    void render(const GameState& game_state);
 
 private:
     glm::mat4 _projection;

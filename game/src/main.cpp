@@ -13,14 +13,17 @@ int main() {
     engine::WindowSystem::get_instance().init();
     engine::InputSystem::get_instance().init();
 
-    std::optional<std::unique_ptr<State>> state =
+    std::unique_ptr<State> state =
         std::make_unique<title_screen::TitleScreen>();
 
     while (true) {
-        if (state.has_value()) {
-            state = state.value()->run();
+        if (state != nullptr) {
+            auto next_state = state->run();
+            state = std::move(next_state);
         } else {
             break;
         }
     }
+
+    return 0;
 }
