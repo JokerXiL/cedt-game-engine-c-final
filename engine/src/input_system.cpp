@@ -54,4 +54,10 @@ void InputSystem::get_mouse_delta(float& dx, float& dy) {
     _last_mouse_y = _mouse_y;
 }
 
+void InputSystem::end_frame() {
+    for (int i = 0; i < 1024; ++i) {
+        _keys_just_pressed[i] = false;
+    }
+}
+
 }  // namespace engine

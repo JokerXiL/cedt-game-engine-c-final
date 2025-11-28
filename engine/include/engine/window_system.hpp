@@ -5,13 +5,18 @@
 
 namespace engine {
 
-class InputSystem;  // Forward declaration
+// Forward declarations
+namespace ui {
+    class UISystem;
+}
+class InputSystem;
 
 constexpr unsigned int SCR_WIDTH = 1280;
 constexpr unsigned int SCR_HEIGHT = 720;
 inline const char* WINDOW_NAME = "Game";
 
 class WindowSystem {
+    friend class ui::UISystem;
     friend class InputSystem;
 
 public:
@@ -24,6 +29,7 @@ public:
     bool should_close() const;
     void swap_buffer();
     void poll_events();
+
 private:
     WindowSystem() = default;
     WindowSystem(const WindowSystem&) = delete;

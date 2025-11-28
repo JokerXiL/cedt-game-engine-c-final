@@ -15,6 +15,14 @@ public:
         return false;
     }
 
+    bool is_key_just_pressed(int key) const {
+        if (key >= 0 && key < 1024) return _keys_just_pressed[key];
+        return false;
+    }
+
+    // Call at end of frame to reset just-pressed states
+    void end_frame();
+
     // Mouse state
     double mouse_x() const { return _mouse_x; }
     double mouse_y() const { return _mouse_y; }
@@ -35,7 +43,12 @@ private:
     InputSystem& operator=(const InputSystem&) = delete;
 
     void set_key_state(int key, bool pressed) {
-        if (key >= 0 && key < 1024) _keys[key] = pressed;
+        if (key >= 0 && key < 1024) {
+            if (pressed && !_keys[key]) {
+                _keys_just_pressed[key] = true;
+            }
+            _keys[key] = pressed;
+        }
     }
 
     void update_mouse_position(double xpos, double ypos) {
@@ -46,6 +59,7 @@ private:
     }
 
     bool _keys[1024] = {false};
+    bool _keys_just_pressed[1024] = {false};
     double _mouse_x = 0.0;
     double _mouse_y = 0.0;
     double _last_mouse_x = 0.0;

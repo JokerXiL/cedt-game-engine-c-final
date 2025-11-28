@@ -59,4 +59,19 @@ void Player::process_input(GameState& state) {
     _input_direction = direction;
 }
 
+void Player::take_damage(float amount) {
+    _health -= amount;
+    if (_health < 0.0f) _health = 0.0f;
+}
+
+void Player::use_stamina(float amount) {
+    _stamina -= amount;
+    if (_stamina < 0.0f) _stamina = 0.0f;
+}
+
+void Player::heal(float amount) {
+    _health += amount;
+    if (_health > _max_health) _health = _max_health;
+}
+
 } // namespace main_game

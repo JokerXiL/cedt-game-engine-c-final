@@ -9,26 +9,35 @@
 #include <game/main_game/game_state.hpp>
 #include <game/main_game/camera.hpp>
 #include <game/main_game/renderer.hpp>
+#include <game/main_game/ui/game_hud.hpp>
+#include <game/main_game/ui/pause_menu.hpp>
 #include <engine/window_system.hpp>
 #include <engine/input_system.hpp>
+#include <engine/ui/ui_system.hpp>
 
 namespace main_game {
 
 std::unique_ptr<State> MainGame::run() {
     auto& window_system = engine::WindowSystem::get_instance();
     auto& input_system = engine::InputSystem::get_instance();
-
-    input_system.capture_mouse();
+    auto& ui_system = engine::ui::UISystem::get_instance();
 
     GameState game_state;
     Renderer renderer;
+
+    // UI components
+    ui::GameHUD hud;
+    ui::PauseMenu pause_menu;
 
     float delta_time = 0.0f;
     float last_frame = 0.0f;
 
     while (true) {
-        // Check for exit
-        if (window_system.should_close() || input_system.is_key_pressed(GLFW_KEY_ESCAPE)) {
+        // Poll windows and input
+        window_system.poll_events();
+
+        // Check for window close
+        if (window_system.should_close()) {
             break;
         }
 
@@ -37,28 +46,48 @@ std::unique_ptr<State> MainGame::run() {
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
-        // Process input
-        game_state.process_input();
+        // Handle UI input
+        if (input_system.is_key_just_pressed(GLFW_KEY_ESCAPE)) {
+            pause_menu.toggle();
+        }
 
-        // Update
-        game_state.update(delta_time);
+        // Toggle mouse capture based on UI state
+        if (pause_menu.is_open()) {
+            input_system.release_mouse();
+        } else {
+            input_system.capture_mouse();
+        }
 
-        // Debug output
-        auto cam_pos = game_state.camera.position();
-        auto player_pos = game_state.player.position();
-        std::cout << "Camera: (" << cam_pos.x << ", " << cam_pos.y << ", " << cam_pos.z << ") "
-                  << "Player: (" << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << ")\n";
+        // Update game (skip if paused)
+        if (!pause_menu.is_open()) {
+            game_state.update(delta_time);
+        }
 
-        // Render
+        // Render 3D scene
         renderer.render(game_state);
 
+        // Render UI
+        ui_system.begin_frame();
+
+        if (pause_menu.is_open()) {
+            auto action = pause_menu.render();
+            if (action == ui::PauseAction::Quit) {
+                break;
+            }
+            if (action == ui::PauseAction::Resume) {
+                pause_menu.close();
+            }
+        } else {
+            hud.render(game_state);
+        }
+
+        ui_system.end_frame();
+
         window_system.swap_buffer();
-        window_system.poll_events();
+        input_system.end_frame();
     }
 
-    input_system.release_mouse();
-
-    auto result = std::make_unique<game_summary::GameSummary>(); // todo
+    auto result = std::make_unique<game_summary::GameSummary>();
     return result;
 }
 
