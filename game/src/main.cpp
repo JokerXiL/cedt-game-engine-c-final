@@ -6,12 +6,12 @@
 #include <optional>
 
 #include <game/title_screen.hpp>
-#include <engine/window_system.hpp>
-#include <engine/input_system.hpp>
+#include <engine/window/window_system.hpp>
+#include <engine/input/input_system.hpp>
 
 int main() {
-    engine::WindowSystem::get_instance().init();
-    engine::InputSystem::get_instance().init();
+    engine::window::WindowSystem::get_instance().init();
+    engine::input::InputSystem::get_instance().init();
 
     std::unique_ptr<State> state =
         std::make_unique<title_screen::TitleScreen>();

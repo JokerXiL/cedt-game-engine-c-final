@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <engine/input_system.hpp>
+#include <engine/input/input_system.hpp>
 
 namespace main_game {
 class GameState;
@@ -17,7 +17,7 @@ public:
     void process_input(GameState& state) {
         float sensitivity = 0.1f;
 
-        engine::InputSystem& input = engine::InputSystem::get_instance();
+        engine::input::InputSystem& input = engine::input::InputSystem::get_instance();
         float dx, dy;
         input.get_mouse_delta(dx, dy);
 

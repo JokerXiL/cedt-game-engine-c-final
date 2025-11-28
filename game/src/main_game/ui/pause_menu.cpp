@@ -1,5 +1,5 @@
 #include <game/main_game/ui/pause_menu.hpp>
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 
 #include <imgui.h>
 
@@ -10,8 +10,8 @@ PauseAction PauseMenu::render() {
 
     PauseAction action = PauseAction::None;
 
-    float screen_width = static_cast<float>(engine::SCR_WIDTH);
-    float screen_height = static_cast<float>(engine::SCR_HEIGHT);
+    float screen_width = static_cast<float>(engine::window::SCR_WIDTH);
+    float screen_height = static_cast<float>(engine::window::SCR_HEIGHT);
 
     // Dim background
     ImGui::SetNextWindowPos(ImVec2(0, 0));

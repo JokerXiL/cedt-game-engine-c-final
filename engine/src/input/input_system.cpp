@@ -1,8 +1,9 @@
-#include <engine/input_system.hpp>
+#include <engine/input/input_system.hpp>
 
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 
 namespace engine {
+namespace input {
 
 InputSystem& InputSystem::get_instance() {
     static InputSystem instance;
@@ -10,7 +11,7 @@ InputSystem& InputSystem::get_instance() {
 }
 
 void InputSystem::init() {
-    auto* window = WindowSystem::get_instance()._window;
+    auto* window = window::WindowSystem::get_instance()._window;
 
     // Set up GLFW callbacks using lambda functions
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode,
@@ -38,12 +39,12 @@ void InputSystem::init() {
 }
 
 void InputSystem::capture_mouse() {
-    auto* window = WindowSystem::get_instance()._window;
+    auto* window = window::WindowSystem::get_instance()._window;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void InputSystem::release_mouse() {
-    auto* window = WindowSystem::get_instance()._window;
+    auto* window = window::WindowSystem::get_instance()._window;
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
@@ -60,4 +61,5 @@ void InputSystem::end_frame() {
     }
 }
 
+}  // namespace input
 }  // namespace engine

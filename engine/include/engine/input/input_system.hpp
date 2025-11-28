@@ -1,6 +1,7 @@
 #pragma once
 
 namespace engine {
+namespace input {
 
 class InputSystem {
 public:
@@ -66,4 +67,5 @@ private:
     double _last_mouse_y = 0.0;
 };
 
+}  // namespace input
 }  // namespace engine

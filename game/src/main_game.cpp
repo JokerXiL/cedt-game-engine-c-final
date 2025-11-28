@@ -11,15 +11,15 @@
 #include <game/main_game/renderer.hpp>
 #include <game/main_game/ui/game_hud.hpp>
 #include <game/main_game/ui/pause_menu.hpp>
-#include <engine/window_system.hpp>
-#include <engine/input_system.hpp>
+#include <engine/window/window_system.hpp>
+#include <engine/input/input_system.hpp>
 #include <engine/ui/ui_system.hpp>
 
 namespace main_game {
 
 std::unique_ptr<State> MainGame::run() {
-    auto& window_system = engine::WindowSystem::get_instance();
-    auto& input_system = engine::InputSystem::get_instance();
+    auto& window_system = engine::window::WindowSystem::get_instance();
+    auto& input_system = engine::input::InputSystem::get_instance();
     auto& ui_system = engine::ui::UISystem::get_instance();
 
     GameState game_state;

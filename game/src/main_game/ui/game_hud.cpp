@@ -2,7 +2,7 @@
 #include <game/main_game/game_state.hpp>
 #include <game/main_game/player.hpp>
 #include <game/main_game/weapon.hpp>
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 
 #include <imgui.h>
 
@@ -84,8 +84,8 @@ void GameHUD::render_weapon_display(const Weapon& weapon) {
                              ImGuiWindowFlags_NoCollapse |
                              ImGuiWindowFlags_NoSavedSettings;
 
-    float screen_width = static_cast<float>(engine::SCR_WIDTH);
-    float screen_height = static_cast<float>(engine::SCR_HEIGHT);
+    float screen_width = static_cast<float>(engine::window::SCR_WIDTH);
+    float screen_height = static_cast<float>(engine::window::SCR_HEIGHT);
 
     ImGui::SetNextWindowPos(ImVec2(screen_width - 170, screen_height - 80));
     ImGui::SetNextWindowSize(ImVec2(150, 60));

@@ -1,5 +1,5 @@
 #include <game/main_game/game_state.hpp>
-#include <engine/input_system.hpp>
+#include <engine/input/input_system.hpp>
 
 namespace main_game {
 

@@ -6,7 +6,7 @@
 #include <game/main_game/player.hpp>
 #include <game/main_game/map.hpp>
 #include <game/main_game/camera.hpp>
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 #include <engine/render/standard_material.hpp>
 #include <engine/render/mesh.hpp>
 #include <engine/render/mesh_factory.hpp>
@@ -15,7 +15,7 @@ namespace main_game {
 
 Renderer::Renderer()
     : _projection(glm::perspective(glm::radians(45.0f),
-                  static_cast<float>(engine::SCR_WIDTH) / static_cast<float>(engine::SCR_HEIGHT),
+                  static_cast<float>(engine::window::SCR_WIDTH) / static_cast<float>(engine::window::SCR_HEIGHT),
                   0.1f, 100.0f)) {
 
     // Create meshes

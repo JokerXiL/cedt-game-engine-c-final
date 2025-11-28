@@ -1,5 +1,5 @@
 #include <engine/ui/ui_system.hpp>
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -19,7 +19,7 @@ UISystem::UISystem() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    GLFWwindow* window = WindowSystem::get_instance()._window;
+    GLFWwindow* window = window::WindowSystem::get_instance()._window;
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 

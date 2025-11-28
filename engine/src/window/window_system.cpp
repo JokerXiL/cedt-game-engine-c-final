@@ -1,10 +1,11 @@
-#include <engine/window_system.hpp>
+#include <engine/window/window_system.hpp>
 #include <iostream>
 
 // Forward declaration
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 namespace engine {
+namespace window {
 
 WindowSystem& WindowSystem::get_instance() {
     static WindowSystem window_system;
@@ -36,7 +37,7 @@ void WindowSystem::init() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
-    
+
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 }
@@ -59,6 +60,8 @@ bool WindowSystem::should_close() const {
 }
 void WindowSystem::swap_buffer() { glfwSwapBuffers(_window); }
 void WindowSystem::poll_events() { glfwPollEvents(); }
+
+}  // namespace window
 }  // namespace engine
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {

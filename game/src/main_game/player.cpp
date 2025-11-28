@@ -1,7 +1,7 @@
 #include <game/main_game/game_state.hpp>
 #include <game/main_game/player.hpp>
 #include <game/main_game/camera.hpp>
-#include <engine/input_system.hpp>
+#include <engine/input/input_system.hpp>
 
 #include <GLFW/glfw3.h>
 #include <cmath>
@@ -34,7 +34,7 @@ void Player::update(GameState& game_state, float delta) {
 
 void Player::process_input(GameState& state) {
     auto& camera = state.camera;
-    engine::InputSystem& input = engine::InputSystem::get_instance();
+    engine::input::InputSystem& input = engine::input::InputSystem::get_instance();
 
     glm::vec3 direction(0.0f);
 

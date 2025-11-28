@@ -5,19 +5,24 @@
 
 namespace engine {
 
-// Forward declarations
+// Forward declarations for friends
 namespace ui {
-    class UISystem;
+class UISystem;
 }
+
+namespace input {
 class InputSystem;
+}
+
+namespace window {
 
 constexpr unsigned int SCR_WIDTH = 1280;
 constexpr unsigned int SCR_HEIGHT = 720;
 inline const char* WINDOW_NAME = "Game";
 
 class WindowSystem {
-    friend class ui::UISystem;
-    friend class InputSystem;
+    friend class engine::ui::UISystem;
+    friend class engine::input::InputSystem;
 
 public:
     // Singleton instance
@@ -38,4 +43,5 @@ private:
     GLFWwindow* _window = nullptr;
 };
 
+}  // namespace window
 }  // namespace engine
