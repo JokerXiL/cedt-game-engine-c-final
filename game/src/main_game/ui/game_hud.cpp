@@ -3,8 +3,7 @@
 #include <game/main_game/player.hpp>
 #include <game/main_game/weapon.hpp>
 #include <engine/window/window_system.hpp>
-
-#include <imgui.h>
+#include <engine/ui/ui_system.hpp>
 
 namespace main_game::ui {
 

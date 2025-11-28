@@ -1,7 +1,6 @@
 #include <game/main_game/ui/pause_menu.hpp>
 #include <engine/window/window_system.hpp>
-
-#include <imgui.h>
+#include <engine/ui/ui_system.hpp>
 
 namespace main_game::ui {
 
