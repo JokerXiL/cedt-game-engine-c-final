@@ -114,8 +114,14 @@ void StandardMaterial::render(const Mesh& mesh, const glm::mat4& transform) {
     // Disable skinning for static meshes
     set_bool(_shader_program_id, "useSkinning", false);
 
-    // Draw the mesh
-    mesh.draw();
+    // Bind and draw
+    glBindVertexArray(mesh.vao());
+    if (mesh.index_count() > 0) {
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh.index_count()), GL_UNSIGNED_INT, nullptr);
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.vertex_count()));
+    }
+    glBindVertexArray(0);
 }
 
 void StandardMaterial::render_skinned(const Mesh& mesh, const glm::mat4& transform, const Skeleton& skeleton) {
@@ -131,8 +137,14 @@ void StandardMaterial::render_skinned(const Mesh& mesh, const glm::mat4& transfo
     set_bool(_shader_program_id, "useSkinning", true);
     set_bone_transforms(&skeleton);
 
-    // Draw the mesh
-    mesh.draw();
+    // Bind and draw
+    glBindVertexArray(mesh.vao());
+    if (mesh.index_count() > 0) {
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mesh.index_count()), GL_UNSIGNED_INT, nullptr);
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.vertex_count()));
+    }
+    glBindVertexArray(0);
 }
 
 }  // namespace engine

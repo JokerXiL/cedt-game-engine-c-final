@@ -1,11 +1,72 @@
 #include <engine/render/mesh.hpp>
 
-#include <iostream>
-
 namespace engine {
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
-    setup_mesh(vertices, indices);
+Mesh::Mesh(const MeshData& data) {
+    _vertex_count = data.vertex_count();
+    _index_count = data.indices.size();
+
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
+
+    // Position (layout 0) - always required
+    glGenBuffers(1, &_vbo_positions);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_positions);
+    glBufferData(GL_ARRAY_BUFFER, data.positions.size() * sizeof(glm::vec3), data.positions.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), nullptr);
+
+    // Normal (layout 1)
+    if (data.has_normals()) {
+        glGenBuffers(1, &_vbo_normals);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
+        glBufferData(GL_ARRAY_BUFFER, data.normals.size() * sizeof(glm::vec3), data.normals.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), nullptr);
+    }
+
+    // UV (layout 2)
+    if (data.has_uvs()) {
+        glGenBuffers(1, &_vbo_uvs);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_uvs);
+        glBufferData(GL_ARRAY_BUFFER, data.uvs.size() * sizeof(glm::vec2), data.uvs.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), nullptr);
+    }
+
+    // Color (layout 3)
+    if (data.has_colors()) {
+        glGenBuffers(1, &_vbo_colors);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_colors);
+        glBufferData(GL_ARRAY_BUFFER, data.colors.size() * sizeof(glm::vec4), data.colors.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), nullptr);
+    }
+
+    // Joint weights (layout 4)
+    if (data.has_skinning()) {
+        glGenBuffers(1, &_vbo_joint_weights);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_joint_weights);
+        glBufferData(GL_ARRAY_BUFFER, data.joint_weights.size() * sizeof(glm::vec4), data.joint_weights.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), nullptr);
+
+        // Joint indices (layout 5)
+        glGenBuffers(1, &_vbo_joint_indices);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_joint_indices);
+        glBufferData(GL_ARRAY_BUFFER, data.joint_indices.size() * sizeof(glm::ivec4), data.joint_indices.data(), GL_STATIC_DRAW);
+        glEnableVertexAttribArray(5);
+        glVertexAttribIPointer(5, 4, GL_INT, sizeof(glm::ivec4), nullptr);
+    }
+
+    // Indices
+    if (data.has_indices() > 0) {
+        glGenBuffers(1, &_ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices.size() * sizeof(unsigned int), data.indices.data(), GL_STATIC_DRAW);
+    }
+
+    glBindVertexArray(0);
 }
 
 Mesh::~Mesh() {
@@ -14,13 +75,22 @@ Mesh::~Mesh() {
 
 Mesh::Mesh(Mesh&& other) noexcept
     : _vao(other._vao),
-      _vbo(other._vbo),
+      _vbo_positions(other._vbo_positions),
+      _vbo_normals(other._vbo_normals),
+      _vbo_uvs(other._vbo_uvs),
+      _vbo_colors(other._vbo_colors),
+      _vbo_joint_weights(other._vbo_joint_weights),
+      _vbo_joint_indices(other._vbo_joint_indices),
       _ebo(other._ebo),
       _vertex_count(other._vertex_count),
       _index_count(other._index_count) {
-    // Take ownership of OpenGL resources
     other._vao = 0;
-    other._vbo = 0;
+    other._vbo_positions = 0;
+    other._vbo_normals = 0;
+    other._vbo_uvs = 0;
+    other._vbo_colors = 0;
+    other._vbo_joint_weights = 0;
+    other._vbo_joint_indices = 0;
     other._ebo = 0;
     other._vertex_count = 0;
     other._index_count = 0;
@@ -28,18 +98,26 @@ Mesh::Mesh(Mesh&& other) noexcept
 
 Mesh& Mesh::operator=(Mesh&& other) noexcept {
     if (this != &other) {
-        // Clean up existing resources
         cleanup();
 
-        // Take ownership of other's resources
         _vao = other._vao;
-        _vbo = other._vbo;
+        _vbo_positions = other._vbo_positions;
+        _vbo_normals = other._vbo_normals;
+        _vbo_uvs = other._vbo_uvs;
+        _vbo_colors = other._vbo_colors;
+        _vbo_joint_weights = other._vbo_joint_weights;
+        _vbo_joint_indices = other._vbo_joint_indices;
         _ebo = other._ebo;
         _vertex_count = other._vertex_count;
         _index_count = other._index_count;
 
         other._vao = 0;
-        other._vbo = 0;
+        other._vbo_positions = 0;
+        other._vbo_normals = 0;
+        other._vbo_uvs = 0;
+        other._vbo_colors = 0;
+        other._vbo_joint_weights = 0;
+        other._vbo_joint_indices = 0;
         other._ebo = 0;
         other._vertex_count = 0;
         other._index_count = 0;
@@ -47,87 +125,39 @@ Mesh& Mesh::operator=(Mesh&& other) noexcept {
     return *this;
 }
 
-void Mesh::setup_mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
-    _vertex_count = vertices.size();
-    _index_count = indices.size();
-
-    // Generate and bind VAO
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
-
-    glBindVertexArray(_vao);
-
-    // Upload vertex data
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-    // Upload index data if provided
-    if (!indices.empty()) {
-        glGenBuffers(1, &_ebo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-    }
-
-    // Vertex attribute pointers
-    // Layout location 0: position
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-
-    // Layout location 1: normal
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-
-    // Layout location 2: uv
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-
-    // Layout location 3: color
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-
-    // Layout location 4: joint_weights
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, joint_weights));
-
-    // Layout location 5: joint_indices
-    glEnableVertexAttribArray(5);
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, joint_indices));
-
-    // Unbind
-    glBindVertexArray(0);
-}
-
 void Mesh::cleanup() {
     if (_vao != 0) {
         glDeleteVertexArrays(1, &_vao);
         _vao = 0;
     }
-    if (_vbo != 0) {
-        glDeleteBuffers(1, &_vbo);
-        _vbo = 0;
+    if (_vbo_positions != 0) {
+        glDeleteBuffers(1, &_vbo_positions);
+        _vbo_positions = 0;
+    }
+    if (_vbo_normals != 0) {
+        glDeleteBuffers(1, &_vbo_normals);
+        _vbo_normals = 0;
+    }
+    if (_vbo_uvs != 0) {
+        glDeleteBuffers(1, &_vbo_uvs);
+        _vbo_uvs = 0;
+    }
+    if (_vbo_colors != 0) {
+        glDeleteBuffers(1, &_vbo_colors);
+        _vbo_colors = 0;
+    }
+    if (_vbo_joint_weights != 0) {
+        glDeleteBuffers(1, &_vbo_joint_weights);
+        _vbo_joint_weights = 0;
+    }
+    if (_vbo_joint_indices != 0) {
+        glDeleteBuffers(1, &_vbo_joint_indices);
+        _vbo_joint_indices = 0;
     }
     if (_ebo != 0) {
         glDeleteBuffers(1, &_ebo);
         _ebo = 0;
     }
-}
-
-void Mesh::bind() const {
-    glBindVertexArray(_vao);
-}
-
-void Mesh::unbind() const {
-    glBindVertexArray(0);
-}
-
-void Mesh::draw() const {
-    bind();
-    if (_index_count > 0) {
-        glDrawElements(GL_TRIANGLES, _index_count, GL_UNSIGNED_INT, 0);
-    } else {
-        glDrawArrays(GL_TRIANGLES, 0, _vertex_count);
-    }
-    unbind();
 }
 
 }  // namespace engine

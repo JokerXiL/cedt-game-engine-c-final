@@ -9,105 +9,120 @@ namespace mesh_factory {
 std::unique_ptr<Mesh> create_cube(float size) {
     float half = size * 0.5f;
 
-    std::vector<Vertex> vertices;
+    MeshData data;
 
-    // Cube vertices with normals (6 faces, 4 vertices each = 24 vertices)
-    // We use separate vertices for each face to get correct normals
+    // Helper to add a face (4 vertices)
+    auto add_face = [&](const glm::vec3& normal,
+                        const glm::vec3& p0, const glm::vec3& p1,
+                        const glm::vec3& p2, const glm::vec3& p3) {
+        data.positions.push_back(p0);
+        data.positions.push_back(p1);
+        data.positions.push_back(p2);
+        data.positions.push_back(p3);
+
+        data.normals.push_back(normal);
+        data.normals.push_back(normal);
+        data.normals.push_back(normal);
+        data.normals.push_back(normal);
+
+        data.uvs.push_back(glm::vec2(0.0f, 0.0f));
+        data.uvs.push_back(glm::vec2(1.0f, 0.0f));
+        data.uvs.push_back(glm::vec2(1.0f, 1.0f));
+        data.uvs.push_back(glm::vec2(0.0f, 1.0f));
+
+        // Default white vertex color
+        data.colors.push_back(glm::vec4(1.0f));
+        data.colors.push_back(glm::vec4(1.0f));
+        data.colors.push_back(glm::vec4(1.0f));
+        data.colors.push_back(glm::vec4(1.0f));
+    };
 
     // Front face (Z+)
-    Vertex v;
-    v.normal = glm::vec3(0.0f, 0.0f, 1.0f);
-    v.position = glm::vec3(-half, -half, half); v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, -half, half);  v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, half);   v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, half, half);  v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(0.0f, 0.0f, 1.0f),
+             glm::vec3(-half, -half, half), glm::vec3(half, -half, half),
+             glm::vec3(half, half, half), glm::vec3(-half, half, half));
 
     // Back face (Z-)
-    v.normal = glm::vec3(0.0f, 0.0f, -1.0f);
-    v.position = glm::vec3(half, -half, -half);  v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, -half, -half); v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, half, -half);  v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, -half);   v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(0.0f, 0.0f, -1.0f),
+             glm::vec3(half, -half, -half), glm::vec3(-half, -half, -half),
+             glm::vec3(-half, half, -half), glm::vec3(half, half, -half));
 
     // Top face (Y+)
-    v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
-    v.position = glm::vec3(-half, half, half);   v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, half);    v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, -half);   v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, half, -half);  v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(0.0f, 1.0f, 0.0f),
+             glm::vec3(-half, half, half), glm::vec3(half, half, half),
+             glm::vec3(half, half, -half), glm::vec3(-half, half, -half));
 
     // Bottom face (Y-)
-    v.normal = glm::vec3(0.0f, -1.0f, 0.0f);
-    v.position = glm::vec3(-half, -half, -half); v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, -half, -half);  v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, -half, half);   v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, -half, half);  v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(0.0f, -1.0f, 0.0f),
+             glm::vec3(-half, -half, -half), glm::vec3(half, -half, -half),
+             glm::vec3(half, -half, half), glm::vec3(-half, -half, half));
 
     // Right face (X+)
-    v.normal = glm::vec3(1.0f, 0.0f, 0.0f);
-    v.position = glm::vec3(half, -half, half);   v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, -half, -half);  v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, -half);   v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(half, half, half);    v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(1.0f, 0.0f, 0.0f),
+             glm::vec3(half, -half, half), glm::vec3(half, -half, -half),
+             glm::vec3(half, half, -half), glm::vec3(half, half, half));
 
     // Left face (X-)
-    v.normal = glm::vec3(-1.0f, 0.0f, 0.0f);
-    v.position = glm::vec3(-half, -half, -half); v.uv = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, -half, half);  v.uv = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, half, half);   v.uv = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
-    v.position = glm::vec3(-half, half, -half);  v.uv = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
+    add_face(glm::vec3(-1.0f, 0.0f, 0.0f),
+             glm::vec3(-half, -half, -half), glm::vec3(-half, -half, half),
+             glm::vec3(-half, half, half), glm::vec3(-half, half, -half));
 
     // Indices (6 faces * 2 triangles * 3 vertices = 36 indices)
-    std::vector<unsigned int> indices;
     for (unsigned int i = 0; i < 6; ++i) {
         unsigned int base = i * 4;
-        // First triangle
-        indices.push_back(base + 0);
-        indices.push_back(base + 1);
-        indices.push_back(base + 2);
-        // Second triangle
-        indices.push_back(base + 0);
-        indices.push_back(base + 2);
-        indices.push_back(base + 3);
+        data.indices.push_back(base + 0);
+        data.indices.push_back(base + 1);
+        data.indices.push_back(base + 2);
+        data.indices.push_back(base + 0);
+        data.indices.push_back(base + 2);
+        data.indices.push_back(base + 3);
     }
 
-    return std::make_unique<Mesh>(vertices, indices);
+    return std::make_unique<Mesh>(data);
 }
 
 std::unique_ptr<Mesh> create_plane(float width, float height) {
     float half_width = width * 0.5f;
     float half_height = height * 0.5f;
 
-    std::vector<Vertex> vertices(4);
+    MeshData data;
 
     // Create a plane in the XZ plane (Y = 0), facing up (+Y)
-    vertices[0].position = glm::vec3(-half_width, 0.0f, -half_height);
-    vertices[0].normal = glm::vec3(0.0f, 1.0f, 0.0f);
-    vertices[0].uv = glm::vec2(0.0f, 0.0f);
-
-    vertices[1].position = glm::vec3(half_width, 0.0f, -half_height);
-    vertices[1].normal = glm::vec3(0.0f, 1.0f, 0.0f);
-    vertices[1].uv = glm::vec2(1.0f, 0.0f);
-
-    vertices[2].position = glm::vec3(half_width, 0.0f, half_height);
-    vertices[2].normal = glm::vec3(0.0f, 1.0f, 0.0f);
-    vertices[2].uv = glm::vec2(1.0f, 1.0f);
-
-    vertices[3].position = glm::vec3(-half_width, 0.0f, half_height);
-    vertices[3].normal = glm::vec3(0.0f, 1.0f, 0.0f);
-    vertices[3].uv = glm::vec2(0.0f, 1.0f);
-
-    std::vector<unsigned int> indices = {
-        0, 1, 2,  // First triangle
-        0, 2, 3   // Second triangle
+    data.positions = {
+        glm::vec3(-half_width, 0.0f, -half_height),
+        glm::vec3(half_width, 0.0f, -half_height),
+        glm::vec3(half_width, 0.0f, half_height),
+        glm::vec3(-half_width, 0.0f, half_height)
     };
 
-    return std::make_unique<Mesh>(vertices, indices);
+    data.normals = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    };
+
+    data.uvs = {
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(1.0f, 0.0f),
+        glm::vec2(1.0f, 1.0f),
+        glm::vec2(0.0f, 1.0f)
+    };
+
+    data.colors = {
+        glm::vec4(1.0f),
+        glm::vec4(1.0f),
+        glm::vec4(1.0f),
+        glm::vec4(1.0f)
+    };
+
+    data.indices = {0, 1, 2, 0, 2, 3};
+
+    return std::make_unique<Mesh>(data);
 }
 
 std::unique_ptr<Mesh> create_sphere(float radius, int segments) {
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
+    MeshData data;
 
     const float PI = 3.14159265359f;
 
@@ -122,17 +137,16 @@ std::unique_ptr<Mesh> create_sphere(float radius, int segments) {
             float sin_phi = std::sin(phi);
             float cos_phi = std::cos(phi);
 
-            Vertex vertex;
-            vertex.position.x = radius * sin_theta * cos_phi;
-            vertex.position.y = radius * cos_theta;
-            vertex.position.z = radius * sin_theta * sin_phi;
+            glm::vec3 position;
+            position.x = radius * sin_theta * cos_phi;
+            position.y = radius * cos_theta;
+            position.z = radius * sin_theta * sin_phi;
 
-            vertex.normal = glm::normalize(vertex.position);
-
-            vertex.uv.x = (float)lon / segments;
-            vertex.uv.y = (float)lat / segments;
-
-            vertices.push_back(vertex);
+            data.positions.push_back(position);
+            data.normals.push_back(glm::normalize(position));
+            data.uvs.push_back(glm::vec2(static_cast<float>(lon) / segments,
+                                          static_cast<float>(lat) / segments));
+            data.colors.push_back(glm::vec4(1.0f));
         }
     }
 
@@ -142,17 +156,17 @@ std::unique_ptr<Mesh> create_sphere(float radius, int segments) {
             unsigned int first = (lat * (segments + 1)) + lon;
             unsigned int second = first + segments + 1;
 
-            indices.push_back(first);
-            indices.push_back(second);
-            indices.push_back(first + 1);
+            data.indices.push_back(first);
+            data.indices.push_back(second);
+            data.indices.push_back(first + 1);
 
-            indices.push_back(second);
-            indices.push_back(second + 1);
-            indices.push_back(first + 1);
+            data.indices.push_back(second);
+            data.indices.push_back(second + 1);
+            data.indices.push_back(first + 1);
         }
     }
 
-    return std::make_unique<Mesh>(vertices, indices);
+    return std::make_unique<Mesh>(data);
 }
 
 }  // namespace mesh_factory
