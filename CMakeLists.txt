@@ -14,14 +14,18 @@ find_package(imgui CONFIG REQUIRED)
 # find_package(Freetype CONFIG REQUIRED)
 # find_package(soil2 CONFIG REQUIRED)
 
-file(GLOB_RECURSE OPENGLAPP_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+# Collect sources from all modules
+file(GLOB_RECURSE ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/engine/src/*.cpp")
+file(GLOB_RECURSE GAME_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/game/src/*.cpp")
+
+add_executable(game
+    ${ENGINE_SOURCES}
+    ${GAME_SOURCES}
 )
 
-add_executable(game ${OPENGLAPP_SOURCES}) # ${EXTRA_SOURCES}
-
 target_include_directories(game PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/includes
+    ${CMAKE_CURRENT_SOURCE_DIR}/engine/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/game/include
 )
 
 target_link_libraries(game PUBLIC
