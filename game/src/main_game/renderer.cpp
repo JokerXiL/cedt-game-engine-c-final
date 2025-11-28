@@ -7,6 +7,7 @@
 #include <game/main_game/map.hpp>
 #include <game/main_game/camera.hpp>
 #include <engine/window/window_system.hpp>
+#include <engine/render/render_system.hpp>
 #include <engine/render/standard_material.hpp>
 #include <engine/render/mesh.hpp>
 #include <engine/render/mesh_factory.hpp>
@@ -48,8 +49,7 @@ void Renderer::render(const GameState& game_state) {
     glm::vec3 light_pos(10.0f, 20.0f, 10.0f);
 
     // Clear screen
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    engine::render::RenderSystem::get_instance().clear_screen();
 
     // Update common material parameters
     _player_material->projection = _projection;

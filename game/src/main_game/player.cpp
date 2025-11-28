@@ -2,8 +2,8 @@
 #include <game/main_game/player.hpp>
 #include <game/main_game/camera.hpp>
 #include <engine/input/input_system.hpp>
+#include <engine/input/key_codes.hpp>
 
-#include <GLFW/glfw3.h>
 #include <cmath>
 
 namespace main_game {
@@ -43,16 +43,17 @@ void Player::process_input(GameState& state) {
     glm::vec3 right = camera.right();
 
     // WASD movement
-    if (input.is_key_pressed(GLFW_KEY_W)) {
+    using engine::input::KeyCode;
+    if (input.is_key_pressed(KeyCode::W)) {
         direction += forward;
     }
-    if (input.is_key_pressed(GLFW_KEY_S)) {
+    if (input.is_key_pressed(KeyCode::S)) {
         direction -= forward;
     }
-    if (input.is_key_pressed(GLFW_KEY_A)) {
+    if (input.is_key_pressed(KeyCode::A)) {
         direction -= right;
     }
-    if (input.is_key_pressed(GLFW_KEY_D)) {
+    if (input.is_key_pressed(KeyCode::D)) {
         direction += right;
     }
 

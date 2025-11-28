@@ -58,8 +58,8 @@ WindowSystem::~WindowSystem() {
 bool WindowSystem::should_close() const {
     return glfwWindowShouldClose(_window);
 }
-void WindowSystem::swap_buffer() { glfwSwapBuffers(_window); }
 void WindowSystem::poll_events() { glfwPollEvents(); }
+double WindowSystem::get_time() const { return glfwGetTime(); }
 
 }  // namespace window
 }  // namespace engine

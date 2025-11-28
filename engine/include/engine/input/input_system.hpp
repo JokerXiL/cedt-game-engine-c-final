@@ -1,5 +1,7 @@
 #pragma once
 
+#include "key_codes.hpp"
+
 namespace engine {
 namespace input {
 
@@ -11,13 +13,15 @@ public:
     void init();
 
     // Key state
-    bool is_key_pressed(int key) const {
-        if (key >= 0 && key < 1024) return _keys[key];
+    bool is_key_pressed(KeyCode key) const {
+        int k = static_cast<int>(key);
+        if (k >= 0 && k < 1024) return _keys[k];
         return false;
     }
 
-    bool is_key_just_pressed(int key) const {
-        if (key >= 0 && key < 1024) return _keys_just_pressed[key];
+    bool is_key_just_pressed(KeyCode key) const {
+        int k = static_cast<int>(key);
+        if (k >= 0 && k < 1024) return _keys_just_pressed[k];
         return false;
     }
 
