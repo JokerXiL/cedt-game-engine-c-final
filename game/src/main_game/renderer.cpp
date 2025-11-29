@@ -10,22 +10,31 @@
 #include <engine/pbr/mesh.hpp>
 #include <engine/pbr/mesh_factory.hpp>
 #include <engine/pbr/model.hpp>
-#include <engine/pbr/model_cache.hpp>
-#include <engine/pbr/texture_cache.hpp>
-#include <engine/pbr/shader_cache.hpp>
 #include <engine/pbr/scene.hpp>
 #include <engine/pbr/light.hpp>
 #include <engine/pbr/pass/shadow_pass.hpp>
 #include <engine/pbr/pass/pbr_pass.hpp>
 #include <engine/ui/pass/ui_pass.hpp>
+#include <engine/resource/caches.hpp>
 
 namespace main_game {
 
 Renderer::Renderer()
     : _scene(std::make_unique<engine::pbr::Scene>())
-    , _shader_cache(std::make_unique<engine::pbr::ShaderCache>())
-    , _model_cache(std::make_unique<engine::pbr::ModelCache>(*_shader_cache))
-    , _texture_cache(std::make_unique<engine::pbr::TextureCache>()) {
+    , _shader_cache(std::make_unique<engine::resource::ShaderCache>(
+          engine::resource::ShaderLoader{}))
+    , _texture_cache(std::make_unique<engine::resource::TextureCache>(
+          engine::resource::TextureLoader{})) {
+
+    // Create shader loader function for materials
+    engine::pbr::StandardMaterial::ShaderLoadFunc shader_loader =
+        [this](const std::string& vert, const std::string& frag) {
+            return _shader_cache->load(vert, frag);
+        };
+
+    // Create model cache with shader loader
+    _model_cache = std::make_unique<engine::resource::ModelCache>(
+        engine::resource::ModelLoader{shader_loader});
 
     // Build render graph with passes
     _shadow_pass = _graph.add_pass(std::make_unique<engine::pbr::ShadowPass>());
@@ -41,12 +50,12 @@ Renderer::Renderer()
     // Create ground mesh
     _ground_mesh = engine::pbr::mesh_factory::create_plane(100.0f, 100.0f);
 
-    // Load player model (materials are created inside ModelCache)
+    // Load player model (materials are created inside ModelLoader)
     _player_model = _model_cache->load("player.glb");
 
     // Ground: green material (albedo = 0.3, 0.6, 0.3)
     _ground_material = std::make_unique<engine::pbr::StandardMaterial>(
-        *_shader_cache,
+        shader_loader,
         glm::vec3(0.3f, 0.6f, 0.3f),  // albedo (green)
         glm::vec3(1.0f),                // specular
         0.0f,                            // metallic

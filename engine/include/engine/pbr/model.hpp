@@ -11,10 +11,13 @@
 #include <memory>
 #include <vector>
 
+namespace engine::resource {
+class ModelLoader;
+}  // namespace engine::resource
+
 namespace engine::pbr {
 
 // Forward declarations
-class ModelCache;
 class Scene;
 
 /// Data loaded from a model file (glTF, FBX, OBJ, etc.)
@@ -71,7 +74,7 @@ public:
     size_t mesh_count() const { return _meshes.size(); }
 
 private:
-    friend class ModelCache;  // Allow ModelCache to populate the model
+    friend class resource::ModelLoader;  // Allow ModelLoader to populate the model
 
     std::vector<std::shared_ptr<Mesh>> _meshes;
     std::vector<std::shared_ptr<StandardMaterial>> _materials;  // Parallel to meshes vector

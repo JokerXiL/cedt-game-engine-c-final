@@ -7,7 +7,7 @@
 namespace engine::pbr {
 
 StandardMaterial::StandardMaterial(
-    ShaderCache& shader_cache,
+    ShaderLoadFunc shader_loader,
     const glm::vec3& albedo,
     const glm::vec3& specular,
     float metallic,
@@ -22,9 +22,9 @@ StandardMaterial::StandardMaterial(
       metallic_roughness_map(0),
       normal_map(0) {
 
-    // Load shaders from cache (shared across all StandardMaterial instances)
-    _shader = shader_cache.load("engine/shaders/pbr.vert", "engine/shaders/pbr.frag");
-    _shadow_shader = shader_cache.load("engine/shaders/shadow.vert", "engine/shaders/shadow.frag");
+    // Load shaders using the provided loader function (shared across all StandardMaterial instances)
+    _shader = shader_loader("engine/shaders/pbr.vert", "engine/shaders/pbr.frag");
+    _shadow_shader = shader_loader("engine/shaders/shadow.vert", "engine/shaders/shadow.frag");
 
     if (!_shader || !_shader->valid()) {
         std::cerr << "ERROR::STANDARD_MATERIAL::Failed to load PBR shader" << std::endl;

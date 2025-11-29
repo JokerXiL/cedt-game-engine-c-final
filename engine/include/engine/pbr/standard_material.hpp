@@ -3,9 +3,13 @@
 #include <engine/pbr/material.hpp>
 #include <engine/pbr/mesh.hpp>
 #include <engine/pbr/skeleton.hpp>
-#include <engine/pbr/shader_cache.hpp>
+#include <engine/pbr/shader.hpp>
 
 #include <glm/glm.hpp>
+
+#include <functional>
+#include <memory>
+#include <string>
 
 namespace engine::pbr {
 
@@ -14,6 +18,10 @@ class Scene;
 
 class StandardMaterial : public Material {
 public:
+    /// Shader loading function type
+    using ShaderLoadFunc = std::function<std::shared_ptr<Shader>(
+        const std::string&, const std::string&)>;
+
     // PBR Material properties
     glm::vec3 albedo;
     glm::vec3 specular_color;
@@ -26,9 +34,9 @@ public:
     GLuint metallic_roughness_map;
     GLuint normal_map;
 
-    // Constructor - requires ShaderCache for shader management
+    // Constructor - requires a shader loading function
     StandardMaterial(
-        ShaderCache& shader_cache,
+        ShaderLoadFunc shader_loader,
         const glm::vec3& albedo = glm::vec3(1.0f),
         const glm::vec3& specular = glm::vec3(1.0f),
         float metallic = 0.0f,
