@@ -12,7 +12,9 @@ void main() {
         float lightDistance = length(FragPos - lightPos);
         // Normalize to [0, 1] range using far plane
         gl_FragDepth = lightDistance / farPlane;
+    } else {
+        // Directional/spot light: use the default depth from rasterizer
+        // Must explicitly write gl_FragDepth in all branches when used in any branch
+        gl_FragDepth = gl_FragCoord.z;
     }
-    // Directional/spot light: depth is written automatically by rasterizer
-    // gl_FragDepth = gl_FragCoord.z; // Implicit when not set
 }

@@ -108,13 +108,14 @@ float calculateShadow(int shadowIndex, vec4 fragPosLightSpace, vec3 normal, vec3
     }
     shadow /= 9.0;
 
-    float fadeStart = 0.5;
-    float edgeFade = 0.8;
-    if (projCoords.x < 1.0 - fadeStart) edgeFade = min(edgeFade, projCoords.x / (1.0 - fadeStart));
-    if (projCoords.x > fadeStart) edgeFade = min(edgeFade, (1.0 - projCoords.x) / (1.0 - fadeStart));
-    if (projCoords.y < 1.0 - fadeStart) edgeFade = min(edgeFade, projCoords.y / (1.0 - fadeStart));
-    if (projCoords.y > fadeStart) edgeFade = min(edgeFade, (1.0 - projCoords.y) / (1.0 - fadeStart));
-    
+    // Fade shadows at the edges of the shadow map to avoid hard cutoffs
+    float fadeMargin = 0.1;
+    float edgeFade = 1.0;
+    edgeFade *= smoothstep(0.0, fadeMargin, projCoords.x);
+    edgeFade *= smoothstep(0.0, fadeMargin, 1.0 - projCoords.x);
+    edgeFade *= smoothstep(0.0, fadeMargin, projCoords.y);
+    edgeFade *= smoothstep(0.0, fadeMargin, 1.0 - projCoords.y);
+
     return shadow * edgeFade;
 }
 
@@ -161,17 +162,18 @@ vec3 calculateLighting(vec3 N, vec3 V, vec3 L, float attenuation, vec3 lightColo
                        vec3 albedoColor, float metallic, float roughness, vec3 specular) {
     vec3 H = normalize(V + L);
 
-    // Diffuse
+    // Diffuse - reduced by metallic (metals have no diffuse)
     float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = diff * lightColor * albedoColor * attenuation;
+    vec3 diffuse = diff * lightColor * albedoColor * (1.0 - metallic) * attenuation;
 
-    // Specular (Blinn-Phong)
+    // Specular (Blinn-Phong) - metals tint specular with albedo
     float shininess = mix(32.0, 256.0, 1.0 - roughness);
     float spec = pow(max(dot(N, H), 0.0), shininess);
-    vec3 specularContribution = spec * lightColor * specular * attenuation;
+    vec3 specularColor = mix(specular, albedoColor, metallic);
+    vec3 specularContribution = spec * lightColor * specularColor * attenuation;
 
-    // Mix between diffuse and specular based on metallic
-    return mix(diffuse, specularContribution, metallic);
+    // Additive: diffuse + specular
+    return diffuse + specularContribution;
 }
 
 // ============================================================================
