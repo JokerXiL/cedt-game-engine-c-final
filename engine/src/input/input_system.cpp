@@ -38,6 +38,12 @@ void InputSystem::init() {
             InputSystem& input = InputSystem::get_instance();
             // TODO
         });
+
+    glfwSetScrollCallback(
+        window, [](GLFWwindow* window, double xoffset, double yoffset) {
+            InputSystem& input = InputSystem::get_instance();
+            input.add_scroll(yoffset);
+        });
 }
 
 void InputSystem::capture_mouse() {
@@ -55,6 +61,12 @@ void InputSystem::get_mouse_delta(float& dx, float& dy) {
     dy = static_cast<float>(_mouse_y - _last_mouse_y);
     _last_mouse_x = _mouse_x;
     _last_mouse_y = _mouse_y;
+}
+
+float InputSystem::get_scroll_delta() {
+    float delta = _scroll_delta;
+    _scroll_delta = 0.0f;
+    return delta;
 }
 
 void InputSystem::end_frame() {

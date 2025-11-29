@@ -9,6 +9,7 @@
 namespace main_game {
 class GameState {
 public:
+    GameState();
     ~GameState() = default;
 
     void update(float delta);
