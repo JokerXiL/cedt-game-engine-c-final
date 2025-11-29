@@ -37,6 +37,8 @@ public:
     // Mouse capture
     void capture_mouse();
     void release_mouse();
+    void center_cursor();
+    void clear_mouse_button_states();
 
     // Get mouse delta and reset for next frame
     void get_mouse_delta(float& dx, float& dy);

@@ -4,6 +4,7 @@
 #include <game/main_game/manager/enemy_manager.hpp>
 #include <game/main_game/manager/projectile_manager.hpp>
 #include <game/main_game/system/particle_system.hpp>
+#include <game/main_game/system/progression_system.hpp>
 #include <game/main_game/system/wave_system.hpp>
 #include <game/main_game/map.hpp>
 #include <game/main_game/player.hpp>
@@ -33,6 +34,7 @@ public:
     EnemyManager enemy_manager;
     ProjectileManager projectile_manager;
     ParticleSystem particle_system;
+    ProgressionSystem progression_system;
     WaveSystem wave_system;
 
 private:

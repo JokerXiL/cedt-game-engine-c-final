@@ -26,10 +26,17 @@ void Player::update(GameState& game_state, float delta) {
         _sub_attack_cooldown -= delta;
     }
 
-    // Normalize and apply movement
+    // Apply health regeneration
+    if (_health_regen_rate > 0.0f && _health < _max_health) {
+        _health += _health_regen_rate * delta;
+        if (_health > _max_health) _health = _max_health;
+    }
+
+    // Normalize and apply movement (with move speed multiplier)
     if (glm::length(_input_direction) > 0.0f) {
         glm::vec3 direction = glm::normalize(_input_direction);
-        _velocity = direction * _move_speed * delta;
+        float effective_speed = _move_speed * _move_speed_multiplier;
+        _velocity = direction * effective_speed * delta;
 
         // Rotate player to face movement direction
         _rotation_y = atan2(direction.x, direction.z);
@@ -81,7 +88,9 @@ void Player::process_input(GameState& state) {
 }
 
 void Player::take_damage(float amount) {
-    _health -= amount;
+    // Apply damage reduction
+    float reduced_amount = amount * (1.0f - _damage_reduction);
+    _health -= reduced_amount;
     if (_health < 0.0f) _health = 0.0f;
 }
 
@@ -98,7 +107,8 @@ void Player::heal(float amount) {
 void Player::attack_main(GameState& game_state) {
     if (_main_attack_cooldown > 0.0f) return;
 
-    _main_attack_cooldown = _main_weapon->cooldown();
+    // Apply attack speed multiplier to cooldown
+    _main_attack_cooldown = _main_weapon->cooldown() / _attack_speed_multiplier;
 
     glm::vec3 facing = game_state.camera.get_aim_direction(_position);
     _main_weapon->attack(game_state, _position, facing);
@@ -107,10 +117,57 @@ void Player::attack_main(GameState& game_state) {
 void Player::attack_sub(GameState& game_state) {
     if (_sub_attack_cooldown > 0.0f) return;
 
-    _sub_attack_cooldown = _sub_weapon->cooldown();
+    // Apply attack speed multiplier to cooldown
+    _sub_attack_cooldown = _sub_weapon->cooldown() / _attack_speed_multiplier;
 
     glm::vec3 facing = game_state.camera.get_aim_direction(_position);
     _sub_weapon->attack(game_state, _position, facing);
+}
+
+// Perk application methods
+void Player::add_max_health(float amount) {
+    _max_health += amount;
+    _health += amount;  // Also heal for the same amount
+    if (_health > _max_health) _health = _max_health;
+}
+
+void Player::add_max_stamina(float amount) {
+    _max_stamina += amount;
+    _stamina += amount;
+    if (_stamina > _max_stamina) _stamina = _max_stamina;
+}
+
+void Player::multiply_damage(float multiplier) {
+    _damage_multiplier *= multiplier;
+}
+
+void Player::multiply_attack_speed(float multiplier) {
+    _attack_speed_multiplier *= multiplier;
+}
+
+void Player::multiply_move_speed(float multiplier) {
+    _move_speed_multiplier *= multiplier;
+}
+
+void Player::add_health_regen(float rate) {
+    _health_regen_rate += rate;
+}
+
+void Player::add_lifesteal(float percent) {
+    _lifesteal_percent += percent;
+}
+
+void Player::add_damage_reduction(float percent) {
+    _damage_reduction += percent;
+    // Cap at 75% damage reduction
+    if (_damage_reduction > 0.75f) _damage_reduction = 0.75f;
+}
+
+void Player::on_damage_dealt(float damage) {
+    if (_lifesteal_percent > 0.0f) {
+        float heal_amount = damage * _lifesteal_percent;
+        heal(heal_amount);
+    }
 }
 
 } // namespace main_game

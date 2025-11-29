@@ -51,6 +51,8 @@ void ProjectileManager::check_collisions(GameState& game_state) {
                 float dist = glm::length(enemy_center - proj.position);
                 if (dist < proj.radius + enemy.collision_radius()) {
                     enemy.take_damage(proj.damage, game_state, proj.position);
+                    // Apply lifesteal if player has it
+                    game_state.player.on_damage_dealt(proj.damage);
                     proj.lifetime = 0.0f;  // Mark for removal
                     break;
                 }

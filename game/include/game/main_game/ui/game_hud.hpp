@@ -14,6 +14,7 @@ public:
 private:
     void render_health_bar(float health, float max_health);
     void render_stamina_bar(float stamina, float max_stamina);
+    void render_xp_bar(int level, float progress);
     void render_weapons_display(const Weapon& main_weapon, const Weapon& sub_weapon);
     void render_crosshair();
 };

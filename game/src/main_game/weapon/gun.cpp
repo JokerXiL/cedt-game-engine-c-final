@@ -12,10 +12,13 @@ Gun::Gun(std::string name, int damage, float attack_speed, float range, float pr
     , _projectile_speed(projectile_speed) {}
 
 void Gun::attack(GameState& game_state, glm::vec3 position, glm::vec3 facing) {
+    // Apply damage multiplier from player perks
+    float effective_damage = static_cast<float>(_damage) * game_state.player.damage_multiplier();
+
     // Shoot projectile
     glm::vec3 spawn_pos = position + glm::vec3(0.0f, 1.0f, 0.0f);  // Slightly above ground
     game_state.projectile_manager.spawn_projectile(
-        spawn_pos, facing, static_cast<float>(_damage), true, _projectile_speed);
+        spawn_pos, facing, effective_damage, true, _projectile_speed);
 }
 
 }  // namespace main_game

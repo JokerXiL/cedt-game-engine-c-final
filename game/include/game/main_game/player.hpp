@@ -36,6 +36,27 @@ public:
     float max_stamina() const { return _max_stamina; }
     bool is_alive() const { return _health > 0.0f; }
 
+    // Stat modifiers (for perks)
+    float damage_multiplier() const { return _damage_multiplier; }
+    float attack_speed_multiplier() const { return _attack_speed_multiplier; }
+    float move_speed_multiplier() const { return _move_speed_multiplier; }
+    float health_regen_rate() const { return _health_regen_rate; }
+    float lifesteal_percent() const { return _lifesteal_percent; }
+    float damage_reduction() const { return _damage_reduction; }
+
+    // Perk application methods
+    void add_max_health(float amount);
+    void add_max_stamina(float amount);
+    void multiply_damage(float multiplier);
+    void multiply_attack_speed(float multiplier);
+    void multiply_move_speed(float multiplier);
+    void add_health_regen(float rate);
+    void add_lifesteal(float percent);
+    void add_damage_reduction(float percent);
+
+    // Lifesteal callback (called when player deals damage)
+    void on_damage_dealt(float damage);
+
 private:
     // Movement
     glm::vec3 _position;
@@ -58,5 +79,13 @@ private:
     // Attack cooldowns (separate for each weapon)
     float _main_attack_cooldown = 0.0f;
     float _sub_attack_cooldown = 0.0f;
+
+    // Stat modifiers (from perks)
+    float _damage_multiplier = 1.0f;
+    float _attack_speed_multiplier = 1.0f;
+    float _move_speed_multiplier = 1.0f;
+    float _health_regen_rate = 0.0f;       // HP per second
+    float _lifesteal_percent = 0.0f;        // % of damage dealt healed
+    float _damage_reduction = 0.0f;         // % damage reduction
 };
 }  // namespace main_game

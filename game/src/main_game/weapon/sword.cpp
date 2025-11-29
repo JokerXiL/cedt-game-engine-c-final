@@ -18,6 +18,9 @@ void Sword::attack(GameState& game_state, glm::vec3 position, glm::vec3 facing) 
     // Slash attack - damage all enemies in arc
     float min_dot = std::cos(_arc_angle / 2.0f);  // Convert arc angle to dot product threshold
 
+    // Apply damage multiplier from player perks
+    float effective_damage = static_cast<float>(_damage) * game_state.player.damage_multiplier();
+
     for (auto& enemy : game_state.enemy_manager.enemies()) {
         if (!enemy.is_alive()) continue;
 
@@ -39,8 +42,11 @@ void Sword::attack(GameState& game_state, glm::vec3 position, glm::vec3 facing) 
         glm::vec3 enemy_center = enemy.position() + glm::vec3(0.0f, 0.5f, 0.0f);
         glm::vec3 impact_pos = enemy_center - dir_to_enemy * enemy.collision_radius();
 
-        // Damage enemy
-        enemy.take_damage(static_cast<float>(_damage), game_state, impact_pos);
+        // Damage enemy with multiplied damage
+        enemy.take_damage(effective_damage, game_state, impact_pos);
+
+        // Apply lifesteal if player has it
+        game_state.player.on_damage_dealt(effective_damage);
     }
 
     // Trigger attack visual effect

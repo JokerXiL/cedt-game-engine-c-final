@@ -9,9 +9,11 @@ namespace main_game::ui {
 
 void GameHUD::render(const GameState& state) {
     const auto& player = state.player;
+    const auto& progression = state.progression_system;
 
     render_health_bar(player.health(), player.max_health());
     render_stamina_bar(player.stamina(), player.max_stamina());
+    render_xp_bar(progression.level(), progression.xp_progress());
     render_weapons_display(player.main_weapon(), player.sub_weapon());
     render_crosshair();
 }
@@ -71,6 +73,35 @@ void GameHUD::render_stamina_bar(float stamina, float max_stamina) {
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.1f, 0.2f, 0.1f, 0.8f));
     ImGui::ProgressBar(fraction, ImVec2(180, 16), "");
+    ImGui::PopStyleColor(2);
+
+    ImGui::End();
+}
+
+void GameHUD::render_xp_bar(int level, float progress) {
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
+                             ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoBackground |
+                             ImGuiWindowFlags_NoSavedSettings;
+
+    ImGui::SetNextWindowPos(ImVec2(20, 80));
+    ImGui::SetNextWindowSize(ImVec2(250, 40));
+
+    ImGui::Begin("XPBar", nullptr, flags);
+
+    // Level label
+    char level_text[16];
+    snprintf(level_text, sizeof(level_text), "LV%d", level);
+    ImGui::TextColored(ImVec4(0.8f, 0.6f, 1.0f, 1.0f), "%s", level_text);
+    ImGui::SameLine();
+
+    // XP progress bar (purple/gold colors)
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.6f, 0.4f, 0.9f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.15f, 0.1f, 0.2f, 0.8f));
+    ImGui::ProgressBar(progress, ImVec2(180, 14), "");
     ImGui::PopStyleColor(2);
 
     ImGui::End();

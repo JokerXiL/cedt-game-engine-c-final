@@ -165,6 +165,9 @@ void Enemy::take_damage(float amount, GameState& game_state, glm::vec3 impact_po
         _state = EnemyState::Dead;
         _death_timer = 0.0f;
 
+        // Grant XP to player
+        game_state.progression_system.on_enemy_killed(_type);
+
         // Spawn explosion particles at enemy center
         glm::vec3 center = _position + glm::vec3(0.0f, 0.5f, 0.0f);
         game_state.particle_system.spawn_explosion(center, 25);

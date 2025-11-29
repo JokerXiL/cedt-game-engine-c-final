@@ -59,6 +59,24 @@ void InputSystem::release_mouse() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
+void InputSystem::center_cursor() {
+    auto* window = window::WindowSystem::get_instance()._window;
+    double center_x = window::SCR_WIDTH / 2.0;
+    double center_y = window::SCR_HEIGHT / 2.0;
+    glfwSetCursorPos(window, center_x, center_y);
+    // Update internal state to prevent sudden camera jumps
+    _mouse_x = center_x;
+    _mouse_y = center_y;
+    _last_mouse_x = center_x;
+    _last_mouse_y = center_y;
+}
+
+void InputSystem::clear_mouse_button_states() {
+    for (int i = 0; i < 8; ++i) {
+        _mouse_buttons_just_pressed[i] = false;
+    }
+}
+
 void InputSystem::get_mouse_delta(float& dx, float& dy) {
     dx = static_cast<float>(_mouse_x - _last_mouse_x);
     dy = static_cast<float>(_mouse_y - _last_mouse_y);

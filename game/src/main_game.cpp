@@ -11,6 +11,7 @@
 #include <game/main_game/renderer.hpp>
 #include <game/main_game/ui/game_hud.hpp>
 #include <game/main_game/ui/pause_menu.hpp>
+#include <game/main_game/ui/perk_selection.hpp>
 #include <engine/window/window_system.hpp>
 #include <engine/input/input_system.hpp>
 #include <engine/input/key_codes.hpp>
@@ -34,6 +35,7 @@ std::unique_ptr<State> MainGame::run() {
     // UI components
     ui::GameHUD hud;
     ui::PauseMenu pause_menu;
+    ui::PerkSelection perk_selection;
 
     float delta_time = 0.0f;
     float last_frame = 0.0f;
@@ -52,38 +54,58 @@ std::unique_ptr<State> MainGame::run() {
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
-        // Handle UI input
-        if (input_system.is_key_just_pressed(engine::input::KeyCode::Escape)) {
+        // Check for level up (open perk selection)
+        if (game_state.progression_system.is_level_up_pending() && !perk_selection.is_open()) {
+            perk_selection.open();
+            // Release mouse first, then center cursor to prevent accidental perk selection
+            input_system.release_mouse();
+            input_system.center_cursor();
+            input_system.clear_mouse_button_states();
+        }
+
+        // Handle UI input (only pause menu toggle when not selecting perk)
+        if (input_system.is_key_just_pressed(engine::input::KeyCode::Escape) && !perk_selection.is_open()) {
             pause_menu.toggle();
         }
 
         // Toggle mouse capture based on UI state
-        if (pause_menu.is_open()) {
+        if (pause_menu.is_open() || perk_selection.is_open()) {
             input_system.release_mouse();
         } else {
             input_system.capture_mouse();
         }
 
-        // Process input and update game (skip if paused)
-        if (!pause_menu.is_open()) {
+        // Process input and update game (skip if paused or selecting perk)
+        if (!pause_menu.is_open() && !perk_selection.is_open()) {
             game_state.process_input();
             game_state.update(delta_time);
             renderer.update(delta_time);
         }
 
-        // Track UI action for after render
+        // Track UI actions for after render
         ui::PauseAction pause_action = ui::PauseAction::None;
+        ui::PerkSelectionAction perk_action = ui::PerkSelectionAction::None;
 
         // Render everything (3D + UI) through the pipeline
         renderer.render(game_state, [&]() {
-            if (pause_menu.is_open()) {
+            if (perk_selection.is_open()) {
+                perk_action = perk_selection.render(
+                    game_state.progression_system.get_perk_choices());
+            } else if (pause_menu.is_open()) {
                 pause_action = pause_menu.render();
             } else {
                 hud.render(game_state);
             }
         });
 
-        // Handle UI actions after render
+        // Handle perk selection
+        if (perk_action == ui::PerkSelectionAction::Selected) {
+            game_state.progression_system.apply_perk(
+                game_state.player, perk_selection.selected_index());
+            perk_selection.close();
+        }
+
+        // Handle pause menu actions
         if (pause_action == ui::PauseAction::Quit) {
             break;
         }
