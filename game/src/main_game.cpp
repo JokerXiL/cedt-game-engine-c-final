@@ -1,13 +1,13 @@
 #include <game/main_game.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <memory>
 
 #include <game/game_summary.hpp>
 #include <game/main_game/game_state.hpp>
-#include <game/main_game/camera.hpp>
 #include <game/main_game/renderer.hpp>
 #include <game/main_game/ui/game_hud.hpp>
 #include <game/main_game/ui/pause_menu.hpp>
@@ -26,6 +26,11 @@ std::unique_ptr<State> MainGame::run() {
     auto& ui_system = engine::ui::UISystem::get_instance();
 
     GameState game_state;
+
+    // Set up camera projection
+    float aspect = static_cast<float>(engine::window::SCR_WIDTH) / static_cast<float>(engine::window::SCR_HEIGHT);
+    game_state.camera.set_projection(glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f));
+
     Renderer renderer;
 
     // UI components

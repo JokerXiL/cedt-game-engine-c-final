@@ -12,7 +12,7 @@ find_package(assimp CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 # find_package(OpenMP REQUIRED)
 # find_package(Freetype CONFIG REQUIRED)
-# find_package(soil2 CONFIG REQUIRED)
+find_package(soil2 CONFIG REQUIRED)
 
 # Collect sources from all modules
 file(GLOB_RECURSE ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/engine/src/*.cpp")
@@ -34,6 +34,6 @@ target_link_libraries(game PUBLIC
     glad::glad
     assimp::assimp
     imgui::imgui
-    # soil2
+    soil2
     # Freetype::Freetype
 )

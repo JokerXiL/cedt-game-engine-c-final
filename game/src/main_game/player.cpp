@@ -1,6 +1,5 @@
 #include <game/main_game/game_state.hpp>
 #include <game/main_game/player.hpp>
-#include <game/main_game/camera.hpp>
 #include <engine/input/input_system.hpp>
 #include <engine/input/key_codes.hpp>
 
@@ -39,8 +38,8 @@ void Player::process_input(GameState& state) {
     glm::vec3 direction(0.0f);
 
     // Get camera-relative directions
-    glm::vec3 forward = camera.forward();
-    glm::vec3 right = camera.right();
+    glm::vec3 forward = camera.forward_xz();
+    glm::vec3 right = camera.right_xz();
 
     // WASD movement
     using engine::input::KeyCode;

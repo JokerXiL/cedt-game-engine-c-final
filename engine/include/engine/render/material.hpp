@@ -8,6 +8,7 @@
 namespace engine {
 
 class Mesh;
+class Model;
 class Skeleton;
 
 class Material {

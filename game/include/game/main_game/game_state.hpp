@@ -1,6 +1,6 @@
 #pragma once
 
-#include <game/main_game/camera.hpp>
+#include <engine/render/orbit_camera.hpp>
 #include <game/main_game/manager/enemy_manager.hpp>
 #include <game/main_game/manager/projectile_manager.hpp>
 #include <game/main_game/map.hpp>
@@ -13,7 +13,7 @@ public:
 
     void update(float delta);
 
-    Camera camera;
+    engine::OrbitCamera camera;
     Player player;
     Map map;
     EnemyManager enemy_manager;

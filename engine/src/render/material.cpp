@@ -1,4 +1,5 @@
 #include <engine/render/material.hpp>
+#include <engine/render/model.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 

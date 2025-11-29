@@ -5,12 +5,12 @@
 #include <game/main_game/game_state.hpp>
 #include <game/main_game/player.hpp>
 #include <game/main_game/map.hpp>
-#include <game/main_game/camera.hpp>
 #include <engine/window/window_system.hpp>
 #include <engine/render/render_system.hpp>
 #include <engine/render/standard_material.hpp>
 #include <engine/render/mesh.hpp>
 #include <engine/render/mesh_factory.hpp>
+#include <engine/render/camera.hpp>
 
 namespace main_game {
 
@@ -51,29 +51,27 @@ void Renderer::render(const GameState& game_state) {
     // Clear screen
     engine::render::RenderSystem::get_instance().clear_screen();
 
-    // Update common material parameters
-    _player_material->projection = _projection;
-    _player_material->view = camera.view_matrix();
-    _player_material->light_pos = light_pos;
-    _player_material->view_pos = camera.position();
-    _player_material->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    _ground_material->projection = _projection;
-    _ground_material->view = camera.view_matrix();
+    // Update ground material parameters
+    _ground_material->projection = camera.projection();
+    _ground_material->view = camera.view();
     _ground_material->light_pos = light_pos;
     _ground_material->view_pos = camera.position();
     _ground_material->light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
     // Render ground
-    glm::mat4 ground_model = glm::mat4(1.0f);
-    _ground_material->render(*_ground_mesh, ground_model);
+    glm::mat4 ground_transform = glm::mat4(1.0f);
+    _ground_material->render(*_ground_mesh, ground_transform);
 
     // Render player
     const Player& player = game_state.player;
-    glm::mat4 player_model = glm::mat4(1.0f);
-    player_model = glm::translate(player_model, player.position());
-    player_model = glm::rotate(player_model, player.rotation_y(), glm::vec3(0.0f, 1.0f, 0.0f));
-    _player_material->render(*_cube_mesh, player_model);
+    glm::mat4 player_transform = glm::mat4(1.0f);
+    player_transform = glm::translate(player_transform, player.position());
+    player_transform = glm::rotate(player_transform, player.rotation_y(), glm::vec3(0.0f, 1.0f, 0.0f));
+    _player_material->projection = camera.projection();
+    _player_material->view = camera.view();
+    _player_material->light_pos = light_pos;
+    _player_material->view_pos = camera.position();
+    _player_material->render(*_cube_mesh, player_transform);
 }
 
 } // namespace main_game

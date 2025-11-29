@@ -13,7 +13,6 @@ class Mesh;
 namespace main_game {
 
 class GameState;
-class Camera;
 
 class Renderer {
 public:
