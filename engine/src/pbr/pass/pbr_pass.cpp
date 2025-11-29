@@ -48,10 +48,23 @@ void PBRPass::execute() {
                 r.model->render(r.transform, *_pbr_context->scene);
             }
         } else if (r.mesh && r.material) {
+            // Handle albedo override for per-instance colors
+            glm::vec3 original_albedo;
+            bool has_override = r.albedo_override.x >= 0.0f;
+            if (has_override) {
+                original_albedo = r.material->albedo;
+                r.material->albedo = r.albedo_override;
+            }
+
             if (r.skeleton) {
                 r.material->render_skinned(*r.mesh, r.transform, *r.skeleton, *_pbr_context->scene);
             } else {
                 r.material->render(*r.mesh, r.transform, *_pbr_context->scene);
+            }
+
+            // Restore original albedo
+            if (has_override) {
+                r.material->albedo = original_albedo;
             }
         }
     }

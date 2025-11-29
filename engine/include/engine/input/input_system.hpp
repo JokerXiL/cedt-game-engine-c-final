@@ -44,6 +44,17 @@ public:
     // Scroll wheel
     float get_scroll_delta();
 
+    // Mouse buttons
+    bool is_mouse_button_pressed(int button) const {
+        if (button >= 0 && button < 8) return _mouse_buttons[button];
+        return false;
+    }
+
+    bool is_mouse_button_just_pressed(int button) const {
+        if (button >= 0 && button < 8) return _mouse_buttons_just_pressed[button];
+        return false;
+    }
+
 private:
     InputSystem() = default;
     ~InputSystem() = default;
@@ -70,8 +81,19 @@ private:
         _scroll_delta += static_cast<float>(yoffset);
     }
 
+    void set_mouse_button(int button, bool pressed) {
+        if (button >= 0 && button < 8) {
+            if (pressed && !_mouse_buttons[button]) {
+                _mouse_buttons_just_pressed[button] = true;
+            }
+            _mouse_buttons[button] = pressed;
+        }
+    }
+
     bool _keys[1024] = {false};
     bool _keys_just_pressed[1024] = {false};
+    bool _mouse_buttons[8] = {false};
+    bool _mouse_buttons_just_pressed[8] = {false};
     double _mouse_x = 0.0;
     double _mouse_y = 0.0;
     double _last_mouse_x = 0.0;

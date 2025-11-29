@@ -30,6 +30,7 @@ struct Renderable {
     glm::mat4 transform{1.0f};
     bool casts_shadow = true;
     const Skeleton* skeleton = nullptr;
+    glm::vec3 albedo_override{-1.0f};  // If >= 0, overrides material albedo
 };
 
 /// Context shared between PBR passes (shadow, main)
@@ -53,7 +54,12 @@ struct PBRContext {
 
     void submit(Mesh& mesh, StandardMaterial& material,
                 const glm::mat4& transform, bool casts_shadow = true) {
-        renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, nullptr});
+        renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, nullptr, glm::vec3(-1.0f)});
+    }
+
+    void submit(Mesh& mesh, StandardMaterial& material,
+                const glm::mat4& transform, const glm::vec3& albedo_override, bool casts_shadow = true) {
+        renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, nullptr, albedo_override});
     }
 
     void submit_skinned(Mesh& mesh, StandardMaterial& material,

@@ -67,6 +67,12 @@ public:
         return glm::normalize(glm::vec3(-std::cos(yaw_rad), 0.0f, std::sin(yaw_rad)));
     }
 
+    /// Directly set the camera position (bypasses orbit calculation)
+    void set_position_direct(const glm::vec3& position) {
+        _position = position;
+        look_at(_target);
+    }
+
 private:
     void update_from_orbit() {
         float pitch_rad = glm::radians(_pitch);

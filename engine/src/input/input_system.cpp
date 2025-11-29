@@ -36,7 +36,10 @@ void InputSystem::init() {
     glfwSetMouseButtonCallback(
         window, [](GLFWwindow* window, int button, int action, int mods) {
             InputSystem& input = InputSystem::get_instance();
-            // TODO
+            if (action == GLFW_PRESS)
+                input.set_mouse_button(button, true);
+            else if (action == GLFW_RELEASE)
+                input.set_mouse_button(button, false);
         });
 
     glfwSetScrollCallback(
@@ -72,6 +75,9 @@ float InputSystem::get_scroll_delta() {
 void InputSystem::end_frame() {
     for (int i = 0; i < 1024; ++i) {
         _keys_just_pressed[i] = false;
+    }
+    for (int i = 0; i < 8; ++i) {
+        _mouse_buttons_just_pressed[i] = false;
     }
 }
 
