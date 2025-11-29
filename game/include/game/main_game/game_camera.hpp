@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/render/orbit_camera.hpp>
+#include <engine/pbr/orbit_camera.hpp>
 
 namespace main_game {
 class GameState;
@@ -12,8 +12,8 @@ public:
     void process_input();
     void update(GameState&);
 
-    engine::OrbitCamera& orbit_camera() { return _camera; }
-    const engine::OrbitCamera& orbit_camera() const { return _camera; }
+    engine::pbr::OrbitCamera& orbit_camera() { return _camera; }
+    const engine::pbr::OrbitCamera& orbit_camera() const { return _camera; }
 
     // Forward common camera methods
     glm::vec3 forward_xz() const { return _camera.forward_xz(); }
@@ -22,7 +22,7 @@ public:
 private:
     void constrain_pitch_above_ground();
 
-    engine::OrbitCamera _camera;
+    engine::pbr::OrbitCamera _camera;
 
     // Camera settings
     static constexpr float MIN_CAMERA_HEIGHT = 0.1f;

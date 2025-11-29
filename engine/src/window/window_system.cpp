@@ -59,6 +59,7 @@ bool WindowSystem::should_close() const {
     return glfwWindowShouldClose(_window);
 }
 void WindowSystem::poll_events() { glfwPollEvents(); }
+void WindowSystem::swap_buffers() { glfwSwapBuffers(_window); }
 double WindowSystem::get_time() const { return glfwGetTime(); }
 
 }  // namespace window

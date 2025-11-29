@@ -12,6 +12,10 @@ const int MAX_BONES = 100;
 uniform mat4 boneTransforms[MAX_BONES];
 uniform bool useSkinning;
 
+// Point light shadow support
+uniform bool isPointLight;
+out vec3 FragPos;
+
 void main() {
     vec4 finalPosition;
 
@@ -27,5 +31,12 @@ void main() {
         finalPosition = vec4(aPos, 1.0);
     }
 
-    gl_Position = lightSpaceMatrix * model * finalPosition;
+    vec4 worldPos = model * finalPosition;
+
+    // Pass world position for point light distance calculation
+    if (isPointLight) {
+        FragPos = worldPos.xyz;
+    }
+
+    gl_Position = lightSpaceMatrix * worldPos;
 }

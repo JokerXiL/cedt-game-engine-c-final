@@ -14,16 +14,12 @@
 #include <engine/window/window_system.hpp>
 #include <engine/input/input_system.hpp>
 #include <engine/input/key_codes.hpp>
-#include <engine/render/render_system.hpp>
-#include <engine/ui/ui_system.hpp>
 
 namespace main_game {
 
 std::unique_ptr<State> MainGame::run() {
     auto& window_system = engine::window::WindowSystem::get_instance();
     auto& input_system = engine::input::InputSystem::get_instance();
-    auto& render_system = engine::render::RenderSystem::get_instance();
-    auto& ui_system = engine::ui::UISystem::get_instance();
 
     GameState game_state;
 
@@ -72,27 +68,26 @@ std::unique_ptr<State> MainGame::run() {
             game_state.update(delta_time);
         }
 
-        // Render 3D scene
-        renderer.render(game_state);
+        // Track UI action for after render
+        ui::PauseAction pause_action = ui::PauseAction::None;
 
-        // Render UI
-        ui_system.begin_frame();
+        // Render everything (3D + UI) through the pipeline
+        renderer.render(game_state, [&]() {
+            if (pause_menu.is_open()) {
+                pause_action = pause_menu.render();
+            } else {
+                hud.render(game_state);
+            }
+        });
 
-        if (pause_menu.is_open()) {
-            auto action = pause_menu.render();
-            if (action == ui::PauseAction::Quit) {
-                break;
-            }
-            if (action == ui::PauseAction::Resume) {
-                pause_menu.close();
-            }
-        } else {
-            hud.render(game_state);
+        // Handle UI actions after render
+        if (pause_action == ui::PauseAction::Quit) {
+            break;
+        }
+        if (pause_action == ui::PauseAction::Resume) {
+            pause_menu.close();
         }
 
-        ui_system.end_frame();
-
-        render_system.swap_buffer();
         input_system.end_frame();
     }
 

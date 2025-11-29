@@ -1,16 +1,29 @@
 #pragma once
 
+#include <engine/render/render_graph.hpp>
+#include <engine/pbr/pass/pbr_render_pass.hpp>
+
+#include <glm/glm.hpp>
+
+#include <functional>
 #include <memory>
 
 // Forward declarations
-namespace engine {
+namespace engine::pbr {
 class StandardMaterial;
 class Mesh;
 class Model;
 class ModelCache;
 class TextureCache;
+class ShaderCache;
 class Scene;
-}  // namespace engine
+class ShadowPass;
+class PBRPass;
+}  // namespace engine::pbr
+
+namespace engine::ui {
+class UIPass;
+}  // namespace engine::ui
 
 namespace main_game {
 
@@ -21,32 +34,43 @@ public:
     Renderer();
     ~Renderer();
 
-    void render(const GameState& game_state);
+    void render(const GameState& game_state, std::function<void()> ui_callback = nullptr);
 
     // Access scene for light manipulation
-    engine::Scene& scene() { return *_scene; }
-    const engine::Scene& scene() const { return *_scene; }
+    engine::pbr::Scene& scene() { return *_scene; }
+    const engine::pbr::Scene& scene() const { return *_scene; }
 
 private:
+    // Render graph
+    engine::RenderGraph _graph;
+
+    // PBR context (shared between shadow and pbr passes)
+    engine::pbr::PBRContext _pbr_context;
+
+    // Pass pointers for per-frame configuration
+    engine::pbr::ShadowPass* _shadow_pass = nullptr;
+    engine::pbr::PBRPass* _pbr_pass = nullptr;
+    engine::ui::UIPass* _ui_pass = nullptr;
+
     // Scene (camera + lights)
-    std::unique_ptr<engine::Scene> _scene;
+    std::unique_ptr<engine::pbr::Scene> _scene;
 
     // Caches
-    std::unique_ptr<engine::ModelCache> _model_cache;
-    std::unique_ptr<engine::TextureCache> _texture_cache;
+    std::unique_ptr<engine::pbr::ShaderCache> _shader_cache;
+    std::unique_ptr<engine::pbr::ModelCache> _model_cache;
+    std::unique_ptr<engine::pbr::TextureCache> _texture_cache;
 
     // Materials
-    std::unique_ptr<engine::StandardMaterial> _ground_material;
+    std::unique_ptr<engine::pbr::StandardMaterial> _ground_material;
 
     // Meshes
-    std::unique_ptr<engine::Mesh> _ground_mesh;
+    std::unique_ptr<engine::pbr::Mesh> _ground_mesh;
 
     // Player model
-    std::shared_ptr<engine::Model> _player_model;
+    std::shared_ptr<engine::pbr::Model> _player_model;
 
-    // Render passes
-    void render_shadow_pass(const GameState& game_state);
-    void render_main_pass(const GameState& game_state);
+    // Helper to extract player transform from game state
+    glm::mat4 get_player_transform(const GameState& game_state) const;
 };
 
 } // namespace main_game

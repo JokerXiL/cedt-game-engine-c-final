@@ -14,10 +14,6 @@ namespace input {
 class InputSystem;
 }
 
-namespace render {
-class RenderSystem;
-}
-
 namespace window {
 
 constexpr unsigned int SCR_WIDTH = 1280;
@@ -27,7 +23,6 @@ inline const char* WINDOW_NAME = "Game";
 class WindowSystem {
     friend class engine::ui::UISystem;
     friend class engine::input::InputSystem;
-    friend class engine::render::RenderSystem;
 
 public:
     // Singleton instance
@@ -38,6 +33,7 @@ public:
 
     bool should_close() const;
     void poll_events();
+    void swap_buffers();
     double get_time() const;
 
 private:
