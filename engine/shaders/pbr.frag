@@ -68,8 +68,28 @@ uniform int numShadowCubeMaps;
 const float PI = 3.14159265359;
 
 // ============================================================================
-// Shadow calculation (simple PCF for crisp shadows)
+// Shadow calculation (Poisson disk sampling for smooth shadows)
 // ============================================================================
+
+// 16-sample Poisson disk for smooth shadow edges
+const vec2 poissonDisk[16] = vec2[](
+    vec2(-0.94201624, -0.39906216),
+    vec2(0.94558609, -0.76890725),
+    vec2(-0.094184101, -0.92938870),
+    vec2(0.34495938, 0.29387760),
+    vec2(-0.91588581, 0.45771432),
+    vec2(-0.81544232, -0.87912464),
+    vec2(-0.38277543, 0.27676845),
+    vec2(0.97484398, 0.75648379),
+    vec2(0.44323325, -0.97511554),
+    vec2(0.53742981, -0.47373420),
+    vec2(-0.26496911, -0.41893023),
+    vec2(0.79197514, 0.19090188),
+    vec2(-0.24188840, 0.99706507),
+    vec2(-0.81409955, 0.91437590),
+    vec2(0.19984126, 0.78641367),
+    vec2(0.14383161, -0.14100790)
+);
 
 float sampleShadowMap(int shadowIndex, vec2 coords) {
     if (shadowIndex == 0) return texture(shadowMaps[0], coords).r;
@@ -98,15 +118,16 @@ float calculateShadow(int shadowIndex, vec4 fragPosLightSpace, vec3 normal, vec3
     // Bias to prevent shadow acne (slope-based)
     float bias = max(0.002 * (1.0 - dot(normal, lightDir)), 0.0005);
 
-    // Simple 3x3 PCF for slightly smoothed but crisp shadows
+    // Poisson disk sampling - 16 samples for smooth shadow edges
     float shadow = 0.0;
-    for (int x = -1; x <= 1; x++) {
-        for (int y = -1; y <= 1; y++) {
-            float depth = sampleShadowMap(shadowIndex, uv + vec2(x, y) * texelSize);
-            shadow += currentDepth - bias > depth ? 1.0 : 0.0;
-        }
+    float spreadRadius = 2.5;  // Spread in texels (adjust for softness)
+
+    for (int i = 0; i < 16; i++) {
+        vec2 offset = poissonDisk[i] * texelSize * spreadRadius;
+        float depth = sampleShadowMap(shadowIndex, uv + offset);
+        shadow += currentDepth - bias > depth ? 1.0 : 0.0;
     }
-    shadow /= 9.0;
+    shadow /= 16.0;
 
     // Fade shadows at the edges of the shadow map to avoid hard cutoffs
     float fadeMargin = 0.1;
