@@ -29,7 +29,7 @@ std::unique_ptr<State> MainGame::run() {
 
     // Set up camera projection
     float aspect = static_cast<float>(engine::window::SCR_WIDTH) / static_cast<float>(engine::window::SCR_HEIGHT);
-    game_state.camera.set_projection(glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f));
+    game_state.camera.orbit_camera().set_projection(glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f));
 
     Renderer renderer;
 
@@ -66,8 +66,9 @@ std::unique_ptr<State> MainGame::run() {
             input_system.capture_mouse();
         }
 
-        // Update game (skip if paused)
+        // Process input and update game (skip if paused)
         if (!pause_menu.is_open()) {
+            game_state.process_input();
             game_state.update(delta_time);
         }
 

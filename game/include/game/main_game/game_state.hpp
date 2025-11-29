@@ -1,6 +1,6 @@
 #pragma once
 
-#include <engine/render/orbit_camera.hpp>
+#include <game/main_game/game_camera.hpp>
 #include <game/main_game/manager/enemy_manager.hpp>
 #include <game/main_game/manager/projectile_manager.hpp>
 #include <game/main_game/map.hpp>
@@ -9,12 +9,13 @@
 namespace main_game {
 class GameState {
 public:
-    GameState();
+    GameState() = default;
     ~GameState() = default;
 
+    void process_input();
     void update(float delta);
 
-    engine::OrbitCamera camera;
+    GameCamera camera;
     Player player;
     Map map;
     EnemyManager enemy_manager;

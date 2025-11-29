@@ -24,6 +24,11 @@ public:
         update_from_orbit();
     }
 
+    void set_pitch(float pitch) {
+        _pitch = pitch;
+        update_from_orbit();
+    }
+
     void orbit_rotate(float delta_yaw, float delta_pitch) {
         _yaw -= delta_yaw;
         _pitch += delta_pitch;

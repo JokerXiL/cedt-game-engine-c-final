@@ -70,7 +70,7 @@ Renderer::~Renderer() = default;
 
 void Renderer::render(const GameState& game_state) {
     // Update scene camera
-    _scene->set_camera(&game_state.camera);
+    _scene->set_camera(&game_state.camera.orbit_camera());
 
     // Shadow pass
     render_shadow_pass(game_state);
