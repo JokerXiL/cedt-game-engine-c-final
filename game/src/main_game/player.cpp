@@ -4,6 +4,7 @@
 #include <engine/input/key_codes.hpp>
 
 #include <cmath>
+#include <limits>
 
 namespace main_game {
 
@@ -12,9 +13,19 @@ Player::Player()
     , _velocity(0.0f)
     , _input_direction(0.0f)
     , _rotation_y(0.0f)
-    , _move_speed(5.0f) {}
+    , _move_speed(5.0f)
+    , _main_weapon(std::make_unique<Sword>())
+    , _sub_weapon(std::make_unique<Gun>()) {}
 
 void Player::update(GameState& game_state, float delta) {
+    // Update attack cooldowns
+    if (_main_attack_cooldown > 0.0f) {
+        _main_attack_cooldown -= delta;
+    }
+    if (_sub_attack_cooldown > 0.0f) {
+        _sub_attack_cooldown -= delta;
+    }
+
     // Normalize and apply movement
     if (glm::length(_input_direction) > 0.0f) {
         glm::vec3 direction = glm::normalize(_input_direction);
@@ -57,6 +68,16 @@ void Player::process_input(GameState& state) {
     }
 
     _input_direction = direction;
+
+    // Left-click: main weapon (sword)
+    if (input.is_mouse_button_just_pressed(0)) {
+        attack_main(state);
+    }
+
+    // Right-click: sub weapon (gun)
+    if (input.is_mouse_button_just_pressed(1)) {
+        attack_sub(state);
+    }
 }
 
 void Player::take_damage(float amount) {
@@ -72,6 +93,24 @@ void Player::use_stamina(float amount) {
 void Player::heal(float amount) {
     _health += amount;
     if (_health > _max_health) _health = _max_health;
+}
+
+void Player::attack_main(GameState& game_state) {
+    if (_main_attack_cooldown > 0.0f) return;
+
+    _main_attack_cooldown = _main_weapon->cooldown();
+
+    glm::vec3 facing = game_state.camera.get_aim_direction(_position);
+    _main_weapon->attack(game_state, _position, facing);
+}
+
+void Player::attack_sub(GameState& game_state) {
+    if (_sub_attack_cooldown > 0.0f) return;
+
+    _sub_attack_cooldown = _sub_weapon->cooldown();
+
+    glm::vec3 facing = game_state.camera.get_aim_direction(_position);
+    _sub_weapon->attack(game_state, _position, facing);
 }
 
 } // namespace main_game

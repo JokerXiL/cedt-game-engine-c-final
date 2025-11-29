@@ -2,7 +2,7 @@
 
 namespace main_game {
 class GameState;
-struct Weapon;
+class Weapon;
 }
 
 namespace main_game::ui {
@@ -14,7 +14,8 @@ public:
 private:
     void render_health_bar(float health, float max_health);
     void render_stamina_bar(float stamina, float max_stamina);
-    void render_weapon_display(const Weapon& weapon);
+    void render_weapons_display(const Weapon& main_weapon, const Weapon& sub_weapon);
+    void render_crosshair();
 };
 
 }  // namespace main_game::ui

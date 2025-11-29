@@ -22,12 +22,14 @@ std::unique_ptr<State> MainGame::run() {
     auto& input_system = engine::input::InputSystem::get_instance();
 
     GameState game_state;
+    game_state.start_game();  // Start the wave system
 
     // Set up camera projection
     float aspect = static_cast<float>(engine::window::SCR_WIDTH) / static_cast<float>(engine::window::SCR_HEIGHT);
     game_state.camera.orbit_camera().set_projection(glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f));
 
     Renderer renderer;
+    game_state.set_renderer(&renderer);
 
     // UI components
     ui::GameHUD hud;
@@ -66,6 +68,7 @@ std::unique_ptr<State> MainGame::run() {
         if (!pause_menu.is_open()) {
             game_state.process_input();
             game_state.update(delta_time);
+            renderer.update(delta_time);
         }
 
         // Track UI action for after render

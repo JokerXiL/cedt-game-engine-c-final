@@ -33,6 +33,10 @@ public:
     ~Renderer();
 
     void render(const GameState& game_state, std::function<void()> ui_callback = nullptr);
+    void update(float delta);
+
+    // Trigger attack visual effect
+    void show_melee_attack(glm::vec3 position, float rotation_y, float range);
 
     // Access scene for light manipulation
     engine::pbr::Scene& scene() { return *_scene; }
@@ -60,15 +64,36 @@ private:
 
     // Materials
     std::unique_ptr<engine::pbr::StandardMaterial> _ground_material;
+    std::unique_ptr<engine::pbr::StandardMaterial> _attack_indicator_material;
+    std::unique_ptr<engine::pbr::StandardMaterial> _projectile_material;
 
     // Meshes
     std::unique_ptr<engine::pbr::Mesh> _ground_mesh;
+    std::unique_ptr<engine::pbr::Mesh> _attack_arc_mesh;
+    std::unique_ptr<engine::pbr::Mesh> _projectile_mesh;
 
     // Player model
     std::shared_ptr<engine::pbr::Model> _player_model;
 
-    // Helper to extract player transform from game state
+    // Enemy mesh and materials (cube shape, different colors per type)
+    std::unique_ptr<engine::pbr::Mesh> _enemy_mesh;
+    std::unique_ptr<engine::pbr::StandardMaterial> _melee_enemy_material;
+    std::unique_ptr<engine::pbr::StandardMaterial> _ranged_enemy_material;
+
+    // Particle mesh (small sphere)
+    std::unique_ptr<engine::pbr::Mesh> _particle_mesh;
+    std::unique_ptr<engine::pbr::StandardMaterial> _particle_material;
+
+    // Helper to extract transforms from game state
     glm::mat4 get_player_transform(const GameState& game_state) const;
+    glm::mat4 get_enemy_transform(const class Enemy& enemy) const;
+
+    // Attack visual state
+    float _attack_visual_timer = 0.0f;
+    glm::vec3 _attack_position{0.0f};
+    float _attack_rotation_y = 0.0f;
+    float _attack_range = 0.0f;
+    static constexpr float ATTACK_VISUAL_DURATION = 0.2f;
 };
 
 } // namespace main_game

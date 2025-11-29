@@ -1,14 +1,6 @@
 #pragma once
 
-#include <string>
-
-namespace main_game {
-
-struct Weapon {
-    std::string name = "Fists";
-    int damage = 5;
-    float attack_speed = 1.0f;
-    float range = 1.5f;
-};
-
-}  // namespace main_game
+// Convenience header that includes all weapon types
+#include <game/main_game/weapon/weapon.hpp>
+#include <game/main_game/weapon/sword.hpp>
+#include <game/main_game/weapon/gun.hpp>

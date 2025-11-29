@@ -12,7 +12,8 @@ void GameHUD::render(const GameState& state) {
 
     render_health_bar(player.health(), player.max_health());
     render_stamina_bar(player.stamina(), player.max_stamina());
-    render_weapon_display(player.main_weapon());
+    render_weapons_display(player.main_weapon(), player.sub_weapon());
+    render_crosshair();
 }
 
 void GameHUD::render_health_bar(float health, float max_health) {
@@ -75,7 +76,7 @@ void GameHUD::render_stamina_bar(float stamina, float max_stamina) {
     ImGui::End();
 }
 
-void GameHUD::render_weapon_display(const Weapon& weapon) {
+void GameHUD::render_weapons_display(const Weapon& main_weapon, const Weapon& sub_weapon) {
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
                              ImGuiWindowFlags_NoResize |
                              ImGuiWindowFlags_NoMove |
@@ -86,15 +87,61 @@ void GameHUD::render_weapon_display(const Weapon& weapon) {
     float screen_width = static_cast<float>(engine::window::SCR_WIDTH);
     float screen_height = static_cast<float>(engine::window::SCR_HEIGHT);
 
-    ImGui::SetNextWindowPos(ImVec2(screen_width - 170, screen_height - 80));
-    ImGui::SetNextWindowSize(ImVec2(150, 60));
+    ImGui::SetNextWindowPos(ImVec2(screen_width - 200, screen_height - 100));
+    ImGui::SetNextWindowSize(ImVec2(180, 80));
 
     ImGui::Begin("WeaponDisplay", nullptr, flags);
 
-    ImGui::TextColored(ImVec4(0.9f, 0.8f, 0.4f, 1.0f), "%s", weapon.name.c_str());
-    ImGui::Text("DMG: %d", weapon.damage);
+    // Main weapon (LMB)
+    ImGui::TextColored(ImVec4(0.9f, 0.8f, 0.4f, 1.0f), "LMB: %s", main_weapon.name().c_str());
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(%d)", main_weapon.damage());
+
+    // Sub weapon (RMB)
+    ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.9f, 1.0f), "RMB: %s", sub_weapon.name().c_str());
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(%d)", sub_weapon.damage());
 
     ImGui::End();
+}
+
+void GameHUD::render_crosshair() {
+    float screen_width = static_cast<float>(engine::window::SCR_WIDTH);
+    float screen_height = static_cast<float>(engine::window::SCR_HEIGHT);
+
+    float center_x = screen_width / 2.0f;
+    float center_y = screen_height / 2.0f;
+
+    // Crosshair size
+    float size = 10.0f;
+    float thickness = 2.0f;
+    float gap = 4.0f;
+
+    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+    ImU32 color = IM_COL32(255, 255, 255, 200);
+
+    // Horizontal lines
+    draw_list->AddLine(
+        ImVec2(center_x - size - gap, center_y),
+        ImVec2(center_x - gap, center_y),
+        color, thickness);
+    draw_list->AddLine(
+        ImVec2(center_x + gap, center_y),
+        ImVec2(center_x + size + gap, center_y),
+        color, thickness);
+
+    // Vertical lines
+    draw_list->AddLine(
+        ImVec2(center_x, center_y - size - gap),
+        ImVec2(center_x, center_y - gap),
+        color, thickness);
+    draw_list->AddLine(
+        ImVec2(center_x, center_y + gap),
+        ImVec2(center_x, center_y + size + gap),
+        color, thickness);
+
+    // Center dot
+    draw_list->AddCircleFilled(ImVec2(center_x, center_y), 2.0f, color);
 }
 
 }  // namespace main_game::ui
