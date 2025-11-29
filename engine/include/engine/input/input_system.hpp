@@ -41,6 +41,9 @@ public:
     // Get mouse delta and reset for next frame
     void get_mouse_delta(float& dx, float& dy);
 
+    // Scroll wheel
+    float get_scroll_delta();
+
 private:
     InputSystem() = default;
     ~InputSystem() = default;
@@ -63,12 +66,17 @@ private:
         _mouse_y = ypos;
     }
 
+    void add_scroll(double yoffset) {
+        _scroll_delta += static_cast<float>(yoffset);
+    }
+
     bool _keys[1024] = {false};
     bool _keys_just_pressed[1024] = {false};
     double _mouse_x = 0.0;
     double _mouse_y = 0.0;
     double _last_mouse_x = 0.0;
     double _last_mouse_y = 0.0;
+    float _scroll_delta = 0.0f;
 };
 
 }  // namespace input

@@ -23,9 +23,9 @@ protected:
     GLuint _shader_program_id = 0;
 
     // Shader compilation and linking utilities
-    GLuint compile_shader(const char* shader_path, GLenum shader_type);
-    GLuint link_program(GLuint vertex_shader, GLuint fragment_shader);
-    GLuint create_shader_program(const char* vertex_path, const char* fragment_path);
+    static GLuint compile_shader(const char* shader_path, GLenum shader_type);
+    static GLuint link_program(GLuint vertex_shader, GLuint fragment_shader);
+    static GLuint create_shader_program(const char* vertex_path, const char* fragment_path);
 
     static void use_program(GLuint program_id);
     static void set_bool(GLuint program_id, const std::string& name, bool value);

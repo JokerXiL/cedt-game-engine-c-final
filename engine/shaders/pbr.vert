@@ -11,10 +11,15 @@ out vec3 FragPos;
 out vec3 Normal;
 out vec2 TexCoords;
 out vec4 VertexColor;
+out vec4 FragPosLightSpace[4];  // Shadow map coordinates (up to 4 directional/spot shadows)
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+
+// Shadow mapping
+uniform mat4 lightSpaceMatrices[4];
+uniform int numShadowMaps;
 
 // Bone transforms (max 100 bones)
 const int MAX_BONES = 100;
@@ -47,10 +52,16 @@ void main() {
         finalNormal = aNormal;
     }
 
-    FragPos = vec3(model * finalPosition);
+    vec4 worldPos = model * finalPosition;
+    FragPos = vec3(worldPos);
     Normal = mat3(transpose(inverse(model))) * finalNormal;
     TexCoords = aTexCoords;
     VertexColor = aColor;
 
-    gl_Position = projection * view * model * finalPosition;
+    // Calculate positions in light space for shadow mapping
+    for (int i = 0; i < numShadowMaps && i < 4; i++) {
+        FragPosLightSpace[i] = lightSpaceMatrices[i] * worldPos;
+    }
+
+    gl_Position = projection * view * worldPos;
 }

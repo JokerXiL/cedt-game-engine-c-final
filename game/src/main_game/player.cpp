@@ -8,7 +8,7 @@
 namespace main_game {
 
 Player::Player()
-    : _position(0.0f, 0.5f, 0.0f)
+    : _position(0.0f, 0.0f, 0.0f)
     , _velocity(0.0f)
     , _input_direction(0.0f)
     , _rotation_y(0.0f)
