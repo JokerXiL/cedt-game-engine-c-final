@@ -3,6 +3,7 @@
 #include <engine/pbr/scene.hpp>
 #include <engine/pbr/model.hpp>
 #include <engine/pbr/mesh.hpp>
+#include <engine/pbr/material.hpp>
 #include <engine/pbr/standard_material.hpp>
 
 #include <GLFW/glfw3.h>
@@ -30,9 +31,7 @@ void PBRPass::execute() {
     glfwGetFramebufferSize(glfwGetCurrentContext(), &fb_width, &fb_height);
     glViewport(0, 0, fb_width, fb_height);
 
-    // Clear screen
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Note: Don't clear here - SkyPass clears and renders background
 
     // Bind shadow textures for sampling
     if (_shadow_pass) {
@@ -48,12 +47,17 @@ void PBRPass::execute() {
                 r.model->render(r.transform, *_pbr_context->scene);
             }
         } else if (r.mesh && r.material) {
-            // Handle albedo override for per-instance colors
+            // Handle albedo override for per-instance colors (only for StandardMaterial)
             glm::vec3 original_albedo;
             bool has_override = r.albedo_override.x >= 0.0f;
+            StandardMaterial* std_material = nullptr;
+
             if (has_override) {
-                original_albedo = r.material->albedo;
-                r.material->albedo = r.albedo_override;
+                std_material = dynamic_cast<StandardMaterial*>(r.material);
+                if (std_material) {
+                    original_albedo = std_material->albedo;
+                    std_material->albedo = r.albedo_override;
+                }
             }
 
             if (r.skeleton) {
@@ -63,8 +67,8 @@ void PBRPass::execute() {
             }
 
             // Restore original albedo
-            if (has_override) {
-                r.material->albedo = original_albedo;
+            if (has_override && std_material) {
+                std_material->albedo = original_albedo;
             }
         }
     }

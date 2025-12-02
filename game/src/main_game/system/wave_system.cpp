@@ -96,7 +96,7 @@ WaveConfig WaveSystem::calculate_wave_config(int wave_number) const {
     if (wave_number < 2) config.ranged_count = 0;
 
     // Faster spawning in later waves
-    config.spawn_delay = std::max(0.2f, 0.5f - (wave_number * 0.05f));
+    config.spawn_delay = std::max(0.1f, 0.3f - (wave_number * 0.03f));
 
     return config;
 }

@@ -10,13 +10,16 @@
 #include <game/main_game/system/particle_system.hpp>
 #include <engine/render/render_graph.hpp>
 #include <engine/pbr/standard_material.hpp>
+#include <engine/pbr/sweep_material.hpp>
 #include <engine/pbr/mesh.hpp>
 #include <engine/pbr/mesh_factory.hpp>
 #include <engine/pbr/model.hpp>
 #include <engine/pbr/scene.hpp>
 #include <engine/pbr/light.hpp>
 #include <engine/pbr/pass/shadow_pass.hpp>
+#include <engine/pbr/pass/sky_pass.hpp>
 #include <engine/pbr/pass/pbr_pass.hpp>
+#include <engine/pbr/ground_material.hpp>
 #include <engine/ui/pass/ui_pass.hpp>
 #include <engine/resource/caches.hpp>
 
@@ -79,14 +82,27 @@ Renderer::Renderer()
 
     // Build render graph with passes
     _shadow_pass = _graph.add_pass(std::make_unique<engine::pbr::ShadowPass>());
+    _sky_pass = _graph.add_pass(std::make_unique<engine::pbr::SkyPass>(shader_loader));
     _pbr_pass = _graph.add_pass(std::make_unique<engine::pbr::PBRPass>());
     _ui_pass = _graph.add_pass(std::make_unique<engine::ui::UIPass>());
     _graph.compile();
 
     // Set shared PBR context on PBR passes
     _shadow_pass->set_context(&_pbr_context);
+    _sky_pass->set_context(&_pbr_context);
     _pbr_pass->set_context(&_pbr_context);
     _pbr_pass->set_shadow_pass(_shadow_pass);
+
+    // Configure sky colors
+    _sky_pass->set_sky_colors(
+        glm::vec3(0.3f, 0.5f, 0.85f),   // Sky top: deep blue
+        glm::vec3(0.7f, 0.8f, 0.9f)     // Horizon: light blue
+    );
+    _sky_pass->set_sun(
+        glm::vec3(0.5f, 1.0f, 0.3f),    // Sun direction (high in sky)
+        glm::vec3(1.0f, 0.95f, 0.8f),   // Warm sun color
+        0.9997f                          // Small sun disk
+    );
 
     // Create ground mesh
     _ground_mesh = engine::pbr::mesh_factory::create_plane(100.0f, 100.0f);
@@ -115,23 +131,22 @@ Renderer::Renderer()
         0.6f                             // roughness
     );
 
-    // Ground: green material (albedo = 0.3, 0.6, 0.3)
-    _ground_material = std::make_unique<engine::pbr::StandardMaterial>(
+    // Ground: pixelated green material
+    _ground_material = std::make_unique<engine::pbr::GroundMaterial>(
         shader_loader,
-        glm::vec3(0.3f, 0.6f, 0.3f),  // albedo (green)
+        glm::vec3(0.3f, 0.6f, 0.3f),  // base green color
         glm::vec3(1.0f),                // specular
         0.0f,                            // metallic
         0.8f                             // roughness
     );
+    _ground_material->pixel_size = 0.5f;       // World-space pixel size
+    _ground_material->color_variation = 0.8f;  // Strong color variation
 
-    // Attack indicator: bright orange/red emissive material
-    _attack_indicator_material = std::make_unique<engine::pbr::StandardMaterial>(
-        shader_loader,
-        glm::vec3(1.0f, 0.3f, 0.1f),   // albedo (orange-red)
-        glm::vec3(1.0f),                // specular
-        0.0f,                            // metallic
-        0.5f                             // roughness
-    );
+    // Sweep effect material for melee attacks
+    _sweep_material = std::make_unique<engine::pbr::SweepMaterial>(shader_loader);
+    _sweep_material->color = glm::vec3(1.0f, 0.6f, 0.2f);  // Warm orange
+    _sweep_material->alpha = 0.9f;
+    _sweep_material->trail_length = 0.5f;
 
     // Create attack arc mesh (radius will be scaled at render time)
     _attack_arc_mesh = create_attack_arc_mesh(1.0f);
@@ -177,7 +192,7 @@ Renderer::Renderer()
         30.0f                            // range
     );
     fill.casts_shadow = true;
-    fill.shadow_map_index = 1;  // Use first cubemap slot
+    fill.shadow_map_index = 0;  // Use first cubemap slot (index 0 for point lights)
     _scene->add_light(fill);
 }
 
@@ -186,6 +201,21 @@ Renderer::~Renderer() = default;
 void Renderer::update(float delta) {
     if (_attack_visual_timer > 0.0f) {
         _attack_visual_timer -= delta;
+
+        // Animate sweep progress (0 to 1 over the duration)
+        float elapsed = ATTACK_VISUAL_DURATION - _attack_visual_timer;
+        float progress = elapsed / ATTACK_VISUAL_DURATION;
+
+        // Use easing for more dynamic feel (ease-out)
+        _sweep_material->sweep_progress = 1.0f - (1.0f - progress) * (1.0f - progress);
+
+        // Fade out alpha near the end
+        if (progress > 0.7f) {
+            float fade = 1.0f - (progress - 0.7f) / 0.3f;
+            _sweep_material->alpha = 0.9f * fade;
+        } else {
+            _sweep_material->alpha = 0.9f;
+        }
     }
 }
 
@@ -204,8 +234,10 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
     _pbr_context.clear();
     _pbr_context.scene = _scene.get();
 
-    // Submit 3D renderables
-    _pbr_context.submit(*_ground_mesh, *_ground_material, glm::mat4(1.0f));
+    // Submit ground (follows player position for infinite ground effect)
+    glm::vec3 player_pos = game_state.player.position();
+    glm::mat4 ground_transform = glm::translate(glm::mat4(1.0f), glm::vec3(player_pos.x, 0.0f, player_pos.z));
+    _pbr_context.submit(*_ground_mesh, *_ground_material, ground_transform);
     _pbr_context.submit(*_player_model, get_player_transform(game_state));
 
     // Submit enemies (colored by type)
@@ -216,17 +248,6 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
                 : *_ranged_enemy_material;
             _pbr_context.submit(*_enemy_mesh, material, get_enemy_transform(enemy));
         }
-    }
-
-    // Submit attack indicator if active
-    if (_attack_visual_timer > 0.0f) {
-        // Build transform: translate to attack position, rotate to facing, scale to attack range
-        glm::mat4 attack_transform = glm::mat4(1.0f);
-        attack_transform = glm::translate(attack_transform, _attack_position);
-        attack_transform = glm::rotate(attack_transform, _attack_rotation_y, glm::vec3(0.0f, 1.0f, 0.0f));
-        attack_transform = glm::scale(attack_transform, glm::vec3(_attack_range, 1.0f, _attack_range));
-
-        _pbr_context.submit(*_attack_arc_mesh, *_attack_indicator_material, attack_transform, false);
     }
 
     // Submit projectiles (cuboid oriented along velocity)
@@ -256,6 +277,16 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
 
         // Submit with per-particle color override
         _pbr_context.submit(*_particle_mesh, *_particle_material, particle_transform, particle.color, false);
+    }
+
+    // Submit sweep effect if active (must be submitted before graph executes)
+    if (_attack_visual_timer > 0.0f) {
+        glm::mat4 attack_transform = glm::mat4(1.0f);
+        attack_transform = glm::translate(attack_transform, _attack_position);
+        attack_transform = glm::rotate(attack_transform, _attack_rotation_y, glm::vec3(0.0f, 1.0f, 0.0f));
+        attack_transform = glm::scale(attack_transform, glm::vec3(_attack_range, 1.0f, _attack_range));
+
+        _pbr_context.submit(*_attack_arc_mesh, *_sweep_material, attack_transform, false);
     }
 
     // Set UI callback on the UI pass

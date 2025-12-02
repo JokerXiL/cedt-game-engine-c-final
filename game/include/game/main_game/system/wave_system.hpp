@@ -46,14 +46,14 @@ private:
     float _current_spawn_delay = 0.5f;
 
     // Configuration
-    static constexpr float WAVE_START_DELAY = 3.0f;
+    static constexpr float WAVE_START_DELAY = 1.5f;
     static constexpr float MIN_SPAWN_DISTANCE = 10.0f;
-    static constexpr float MAX_SPAWN_DISTANCE = 20.0f;
+    static constexpr float MAX_SPAWN_DISTANCE = 25.0f;
 
     // Difficulty scaling
-    static constexpr int BASE_MELEE_COUNT = 3;
-    static constexpr int BASE_RANGED_COUNT = 1;
-    static constexpr float ENEMY_SCALING = 1.2f;
+    static constexpr int BASE_MELEE_COUNT = 6;
+    static constexpr int BASE_RANGED_COUNT = 2;
+    static constexpr float ENEMY_SCALING = 1.3f;
 };
 
 }  // namespace main_game

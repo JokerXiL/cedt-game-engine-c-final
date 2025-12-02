@@ -25,8 +25,12 @@ public:
     size_t alive_count() const;
     size_t total_count() const { return _enemies.size(); }
 
+    // Configuration
+    static constexpr float DESPAWN_DISTANCE = 50.0f;  // Distance from player to despawn
+
 private:
     void remove_dead_enemies();
+    void despawn_far_enemies(const glm::vec3& player_pos);
 
     std::vector<Enemy> _enemies;
 };

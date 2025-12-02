@@ -12,11 +12,14 @@
 // Forward declarations
 namespace engine::pbr {
 class StandardMaterial;
+class GroundMaterial;
+class SweepMaterial;
 class Mesh;
 class Model;
 class Scene;
 class ShadowPass;
 class PBRPass;
+class SkyPass;
 }  // namespace engine::pbr
 
 namespace engine::ui {
@@ -51,6 +54,7 @@ private:
 
     // Pass pointers for per-frame configuration
     engine::pbr::ShadowPass* _shadow_pass = nullptr;
+    engine::pbr::SkyPass* _sky_pass = nullptr;
     engine::pbr::PBRPass* _pbr_pass = nullptr;
     engine::ui::UIPass* _ui_pass = nullptr;
 
@@ -63,8 +67,8 @@ private:
     std::unique_ptr<engine::resource::ModelCache> _model_cache;
 
     // Materials
-    std::unique_ptr<engine::pbr::StandardMaterial> _ground_material;
-    std::unique_ptr<engine::pbr::StandardMaterial> _attack_indicator_material;
+    std::unique_ptr<engine::pbr::GroundMaterial> _ground_material;
+    std::unique_ptr<engine::pbr::SweepMaterial> _sweep_material;
     std::unique_ptr<engine::pbr::StandardMaterial> _projectile_material;
 
     // Meshes

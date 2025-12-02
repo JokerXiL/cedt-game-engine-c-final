@@ -19,6 +19,7 @@ namespace RenderResource {
 // Forward declarations
 class Model;
 class Mesh;
+class Material;
 class StandardMaterial;
 class Skeleton;
 
@@ -26,7 +27,7 @@ class Skeleton;
 struct Renderable {
     Model* model = nullptr;
     Mesh* mesh = nullptr;
-    StandardMaterial* material = nullptr;
+    Material* material = nullptr;
     glm::mat4 transform{1.0f};
     bool casts_shadow = true;
     const Skeleton* skeleton = nullptr;
@@ -52,17 +53,17 @@ struct PBRContext {
         renderables.push_back({&model, nullptr, nullptr, transform, casts_shadow, &skeleton});
     }
 
-    void submit(Mesh& mesh, StandardMaterial& material,
+    void submit(Mesh& mesh, Material& material,
                 const glm::mat4& transform, bool casts_shadow = true) {
         renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, nullptr, glm::vec3(-1.0f)});
     }
 
-    void submit(Mesh& mesh, StandardMaterial& material,
+    void submit(Mesh& mesh, Material& material,
                 const glm::mat4& transform, const glm::vec3& albedo_override, bool casts_shadow = true) {
         renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, nullptr, albedo_override});
     }
 
-    void submit_skinned(Mesh& mesh, StandardMaterial& material,
+    void submit_skinned(Mesh& mesh, Material& material,
                         const glm::mat4& transform, const Skeleton& skeleton,
                         bool casts_shadow = true) {
         renderables.push_back({nullptr, &mesh, &material, transform, casts_shadow, &skeleton});
