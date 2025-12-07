@@ -260,7 +260,8 @@ void StandardMaterial::render_shadow_cube_skinned(const Mesh& mesh, const glm::m
 void StandardMaterial::set_bone_transforms(const Skeleton* skeleton, const Shader& shader) {
     if (skeleton && skeleton->get_bone_count() > 0) {
         auto final_transforms = skeleton->get_final_transforms();
-        size_t bone_count = std::min(final_transforms.size(), size_t(100));
+        size_t bone_count = std::min(final_transforms.size(), size_t(200));
+
 
         for (size_t i = 0; i < bone_count; ++i) {
             std::string uniform_name = "boneTransforms[" + std::to_string(i) + "]";

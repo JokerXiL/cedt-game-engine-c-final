@@ -8,7 +8,7 @@ uniform mat4 lightSpaceMatrix;
 uniform mat4 model;
 
 // Skeletal animation support
-const int MAX_BONES = 100;
+const int MAX_BONES = 200;
 uniform mat4 boneTransforms[MAX_BONES];
 uniform bool useSkinning;
 

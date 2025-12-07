@@ -22,7 +22,7 @@ uniform mat4 lightSpaceMatrices[4];
 uniform int numShadowMaps;
 
 // Bone transforms (max 100 bones)
-const int MAX_BONES = 100;
+const int MAX_BONES = 200;
 uniform mat4 boneTransforms[MAX_BONES];
 uniform bool useSkinning;
 

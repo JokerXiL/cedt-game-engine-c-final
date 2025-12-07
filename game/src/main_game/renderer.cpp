@@ -24,6 +24,7 @@
 #include <engine/resource/caches.hpp>
 
 #include <cmath>
+#include <iostream>
 
 namespace main_game {
 
@@ -108,8 +109,13 @@ Renderer::Renderer()
     _ground_mesh = engine::pbr::mesh_factory::create_plane(100.0f, 100.0f);
 
     // Load player model (materials are created inside ModelLoader)
-    _player_model = _model_cache->load("player.glb");
-
+    _player_model = _model_cache->load("samira_blender2.glb");
+    
+    for (size_t i = 0; i < _player_model.get()->animation_count(); ++i) {
+        auto anim = *_player_model->get_animation(i);
+        std::cout << "Animation " << i << ": " << anim.get_name() << std::endl;
+        std::cout << "  Duration: " << (anim.get_duration() / anim.get_ticks_per_second()) << " seconds" << std::endl;
+    }
     // Create enemy cube mesh and materials (different colors per type)
     _enemy_mesh = engine::pbr::mesh_factory::create_cube(1.0f);
 
@@ -234,11 +240,77 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
     _pbr_context.clear();
     _pbr_context.scene = _scene.get();
 
+    // Initialize player skeleton bind pose once from model
+    static bool skeleton_initialized = false;
+    if (!skeleton_initialized && _player_model && _player_model->get_skeleton()) {
+        auto model_skeleton = _player_model->get_skeleton();
+        if (model_skeleton->bindpose) {
+            auto& player_skeleton = const_cast<GameState&>(game_state).player.get_skeleton();
+            // Resize player skeleton to match model's bone count
+            size_t model_bone_count = model_skeleton->get_bone_count();
+            player_skeleton.transforms.resize(model_bone_count, glm::mat4(1.0f));
+            player_skeleton.bindpose = model_skeleton->bindpose;
+            player_skeleton.bone_index_map = model_skeleton->bone_index_map;
+            player_skeleton.root_node = model_skeleton->root_node;
+            
+            // Initialize transforms to the inverse of inverse bind pose for T-pose
+            // Since bindpose contains inverse bind matrices, we need to invert them
+            // to get the actual bind pose (T-pose) transforms
+            for (size_t i = 0; i < model_bone_count && i < model_skeleton->bindpose->size(); ++i) {
+                player_skeleton.transforms[i] = glm::inverse((*model_skeleton->bindpose)[i]);
+            }
+            
+            std::cout << "Player skeleton initialized from model:" << std::endl;
+            std::cout << "  Model skeleton bone count: " << model_bone_count << std::endl;
+            std::cout << "  Player skeleton bone count: " << player_skeleton.get_bone_count() << std::endl;
+            
+            // Initialize animation if available
+            auto& player_anim_state = const_cast<GameState&>(game_state).player.get_animation_state();
+            if (_player_model->animation_count() > 0) {
+                std::cout << "  Found " << _player_model->animation_count() << " animations:" << std::endl;
+                for (size_t i = 0; i < _player_model->animation_count(); ++i) {
+                    auto anim = _player_model->get_animation(i);
+                    if (anim) {
+                        std::cout << "    [" << i << "] " << anim->get_name() 
+                                  << " (" << (anim->get_duration() / anim->get_ticks_per_second()) 
+                                  << " seconds)" << std::endl;
+                    }
+                }
+
+                // Set the first animation and start playing
+                auto first_anim = _player_model->find_animation("Idle.anm_Skeleton");
+                if (first_anim) {
+                    player_anim_state.set_clip(first_anim);
+                    player_anim_state.set_looping(true);
+                    player_anim_state.play();
+                    std::cout << "  Started playing animation: " << first_anim->get_name() << std::endl;
+                }
+                auto idle_anim = _player_model->find_animation("Idle.anm_Skeleton");
+                auto run_anim = _player_model->find_animation("Run_Gun.anm_Skeleton");
+                auto melee_anim = _player_model->find_animation("Spell1_Sword_Run.anm_Skeleton");
+                auto ranged_anim = _player_model->find_animation("Spell1_Gun.anm_Skeleton");
+                const_cast<GameState&>(game_state).player.set_animation_clips(idle_anim,run_anim,melee_anim,ranged_anim);
+
+            } else {
+                std::cout << "  No animations found in model" << std::endl;
+            }
+            
+            skeleton_initialized = true;
+        }
+    } else if (!skeleton_initialized) {
+        std::cout << "Warning: Could not initialize player skeleton - model or skeleton is null" << std::endl;
+        if (!_player_model) std::cout << "  _player_model is null" << std::endl;
+        else if (!_player_model->get_skeleton()) std::cout << "  model->get_skeleton() is null" << std::endl;
+        skeleton_initialized = true;
+    }
+
     // Submit ground (follows player position for infinite ground effect)
     glm::vec3 player_pos = game_state.player.position();
     glm::mat4 ground_transform = glm::translate(glm::mat4(1.0f), glm::vec3(player_pos.x, 0.0f, player_pos.z));
     _pbr_context.submit(*_ground_mesh, *_ground_material, ground_transform);
-    _pbr_context.submit(*_player_model, get_player_transform(game_state));
+    
+    // Submit player with skinned rendering
+    _pbr_context.submit_skinned(*_player_model, get_player_transform(game_state), game_state.player.get_skeleton());
 
     // Submit enemies (colored by type)
     for (const auto& enemy : game_state.enemy_manager.enemies()) {
@@ -303,6 +375,7 @@ glm::mat4 Renderer::get_player_transform(const GameState& game_state) const {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, player.position());
     transform = glm::rotate(transform, player.rotation_y(), glm::vec3(0.0f, 1.0f, 0.0f));
+    transform = glm::scale(transform,glm::vec3(0.6f));
     return transform;
 }
 

@@ -25,5 +25,5 @@ void main() {
     AngleNormalized = (angle + PI * 0.25) / (PI * 0.5);
     AngleNormalized = clamp(AngleNormalized, 0.0, 1.0);
 
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    gl_Position = projection * view * model * vec4(aPos + vec3(0.0,0.5,0.0), 1.0);
 }

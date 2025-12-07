@@ -4,6 +4,7 @@
 #include <engine/pbr/texture.hpp>
 #include <engine/pbr/standard_material.hpp>
 #include <engine/pbr/skeleton.hpp>
+#include <engine/pbr/animation.hpp>
 #include <engine/pbr/camera.hpp>
 
 #include <glm/glm.hpp>
@@ -73,12 +74,38 @@ public:
     /// Get number of meshes
     size_t mesh_count() const { return _meshes.size(); }
 
+    /// Get the skeleton (bind pose and bone data)
+    std::shared_ptr<Skeleton> get_skeleton() const { return _skeleton; }
+
+    /// Get number of animations
+    size_t animation_count() const { return _animations.size(); }
+
+    /// Get animation by index
+    std::shared_ptr<AnimationClip> get_animation(size_t index) const {
+        return index < _animations.size() ? _animations[index] : nullptr;
+    }
+
+    /// Find animation by name
+    std::shared_ptr<AnimationClip> find_animation(const std::string& name) const {
+        for (const auto& anim : _animations) {
+            if (anim->get_name() == name) {
+                return anim;
+            }
+        }
+        return nullptr;
+    }
+
+    /// Get all animations
+    const std::vector<std::shared_ptr<AnimationClip>>& get_animations() const { return _animations; }
+
 private:
     friend class resource::ModelLoader;  // Allow ModelLoader to populate the model
 
     std::vector<std::shared_ptr<Mesh>> _meshes;
     std::vector<std::shared_ptr<StandardMaterial>> _materials;  // Parallel to meshes vector
     std::vector<std::shared_ptr<Texture>> _textures;  // Owned textures
+    std::shared_ptr<Skeleton> _skeleton;  // Skeleton with bind pose loaded from model
+    std::vector<std::shared_ptr<AnimationClip>> _animations;  // Animation clips loaded from model
 };
 
 }  // namespace engine::pbr

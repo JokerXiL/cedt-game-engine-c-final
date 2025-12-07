@@ -49,7 +49,7 @@ private:
     float _shoulder_side_current = 1.0f; // Current interpolated value
 
     // Distance settings
-    static constexpr float NORMAL_DISTANCE = 2.0f;       // Default camera distance
+    static constexpr float NORMAL_DISTANCE = 7.0f;       // Default camera distance
     static constexpr float AIM_DISTANCE = 1.0f;          // Zoomed in distance when aiming
     static constexpr float AIM_BLEND_SPEED = 10.0f;      // How fast to zoom transition
 };

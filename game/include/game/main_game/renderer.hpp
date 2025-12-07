@@ -44,7 +44,7 @@ public:
     // Access scene for light manipulation
     engine::pbr::Scene& scene() { return *_scene; }
     const engine::pbr::Scene& scene() const { return *_scene; }
-
+    const engine::pbr::Model& get_player_model() const { return *_player_model; } 
 private:
     // Render graph
     engine::RenderGraph _graph;
