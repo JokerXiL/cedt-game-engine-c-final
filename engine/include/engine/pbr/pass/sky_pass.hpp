@@ -3,7 +3,6 @@
 #include <engine/pbr/pass/pbr_render_pass.hpp>
 #include <engine/pbr/shader.hpp>
 
-#include <functional>
 #include <memory>
 
 namespace engine::pbr {

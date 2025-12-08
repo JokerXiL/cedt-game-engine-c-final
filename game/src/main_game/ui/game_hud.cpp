@@ -28,7 +28,7 @@ void GameHUD::render_health_bar(float health, float max_health) {
                              ImGuiWindowFlags_NoSavedSettings;
 
     ImGui::SetNextWindowPos(ImVec2(20, 20));
-    ImGui::SetNextWindowSize(ImVec2(300, 60));
+    ImGui::SetNextWindowSize(ImVec2(250, 60));
 
     ImGui::Begin("HealthBar", nullptr, flags);
 
@@ -45,7 +45,7 @@ void GameHUD::render_health_bar(float health, float max_health) {
 
     // Health text
     ImGui::SameLine();
-    ImGui::Text("%.1f/%.1f", health, max_health);
+    ImGui::Text("%.0f/%.0f", health, max_health);
 
     ImGui::End();
 }

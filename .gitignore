@@ -3,14 +3,11 @@
 /CMakeFiles
 /resources/references
 /CMakeCache.txt
-CMakePresets.json
-CMakeUserPresets.json
+CMakeUserPresents.json
 .clang-format
 .cache
-vcpkg-configuration.json
-vcpkg.json
-.vscode
-.zed
-.DS_Store
 
-samira_blender2.glb
+.vscode
+
+
+.DS_Store
