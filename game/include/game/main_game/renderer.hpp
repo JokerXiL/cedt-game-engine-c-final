@@ -13,7 +13,6 @@
 namespace engine::pbr {
 class StandardMaterial;
 class GroundMaterial;
-class SweepMaterial;
 class Mesh;
 class Model;
 class Scene;
@@ -25,6 +24,10 @@ class SkyPass;
 namespace engine::ui {
 class UIPass;
 }  // namespace engine::ui
+
+namespace game::main_game {
+class SweepMaterial;
+}
 
 namespace main_game {
 
@@ -68,7 +71,7 @@ private:
 
     // Materials
     std::unique_ptr<engine::pbr::GroundMaterial> _ground_material;
-    std::unique_ptr<engine::pbr::SweepMaterial> _sweep_material;
+    std::unique_ptr<game::main_game::SweepMaterial> _sweep_material;
     std::unique_ptr<engine::pbr::StandardMaterial> _projectile_material;
 
     // Meshes

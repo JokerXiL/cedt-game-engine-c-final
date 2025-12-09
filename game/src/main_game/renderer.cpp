@@ -10,7 +10,7 @@
 #include <game/main_game/system/particle_system.hpp>
 #include <engine/render/render_graph.hpp>
 #include <engine/pbr/standard_material.hpp>
-#include <engine/pbr/sweep_material.hpp>
+#include <game/main_game/sweep_material.hpp>
 #include <engine/pbr/mesh.hpp>
 #include <engine/pbr/mesh_factory.hpp>
 #include <engine/pbr/model.hpp>
@@ -149,7 +149,7 @@ Renderer::Renderer()
     _ground_material->color_variation = 0.8f;  // Strong color variation
 
     // Sweep effect material for melee attacks
-    _sweep_material = std::make_unique<engine::pbr::SweepMaterial>(shader_loader);
+    _sweep_material = std::make_unique<game::main_game::SweepMaterial>(shader_loader);
     _sweep_material->color = glm::vec3(1.0f, 0.6f, 0.2f);  // Warm orange
     _sweep_material->alpha = 0.9f;
     _sweep_material->trail_length = 0.5f;
