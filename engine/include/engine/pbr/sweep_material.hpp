@@ -32,22 +32,6 @@ public:
 
     void render(const Mesh& mesh, const glm::mat4& transform, const Scene& scene) override;
 
-    // Not used for sweep effects (no shadows)
-    void render_skinned(const Mesh& mesh, const glm::mat4& transform,
-                        const Skeleton& skeleton, const Scene& scene) override {}
-    void render_shadow(const Mesh& mesh, const glm::mat4& transform,
-                       const glm::mat4& light_space_matrix) override {}
-    void render_shadow_skinned(const Mesh& mesh, const glm::mat4& transform,
-                               const Skeleton& skeleton,
-                               const glm::mat4& light_space_matrix) override {}
-    void render_shadow_cube(const Mesh& mesh, const glm::mat4& transform,
-                            const glm::mat4& light_space_matrix,
-                            const glm::vec3& light_pos, float far_plane) override {}
-    void render_shadow_cube_skinned(const Mesh& mesh, const glm::mat4& transform,
-                                    const Skeleton& skeleton,
-                                    const glm::mat4& light_space_matrix,
-                                    const glm::vec3& light_pos, float far_plane) override {}
-
 private:
     std::shared_ptr<Shader> _shader;
 };
