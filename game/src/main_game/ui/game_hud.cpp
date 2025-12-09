@@ -28,7 +28,7 @@ void GameHUD::render_health_bar(float health, float max_health) {
                              ImGuiWindowFlags_NoSavedSettings;
 
     ImGui::SetNextWindowPos(ImVec2(20, 20));
-    ImGui::SetNextWindowSize(ImVec2(250, 60));
+    ImGui::SetNextWindowSize(ImVec2(300, 60));
 
     ImGui::Begin("HealthBar", nullptr, flags);
 
