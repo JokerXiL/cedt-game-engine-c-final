@@ -45,12 +45,14 @@ void Player::update(GameState& game_state, float delta) {
 
     // Apply velocity to position
     _position += _velocity;
-    _input_direction = glm::vec3(0.0f);
 
-    // Update animation
-    bool is_moving = glm::length(_velocity) > 0.01f;
+    // Update animation - use input direction instead of velocity to avoid delta-dependent flickering
+    bool is_moving = glm::length(_input_direction) > 0.01f;
     _animation_controller.update(delta, is_moving, _main_attack_cooldown > 0.0f, _sub_attack_cooldown > 0.0f);
     _animation_controller.apply(_skeleton);
+
+    // Reset input direction for next frame (after animation uses it)
+    _input_direction = glm::vec3(0.0f);
 }
 
 void Player::process_input(GameState& state) {
