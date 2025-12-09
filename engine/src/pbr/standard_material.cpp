@@ -183,74 +183,65 @@ void StandardMaterial::render_skinned(const Mesh& mesh, const glm::mat4& transfo
 // Shadow rendering
 // ============================================================================
 
-void StandardMaterial::render_shadow(const Mesh& mesh, const glm::mat4& transform,
-                                      const glm::mat4& light_space_matrix) {
+bool StandardMaterial::begin_shadow_pass(const glm::mat4& transform,
+                                          const glm::mat4& light_space_matrix,
+                                          const Skeleton* skeleton,
+                                          bool is_point_light,
+                                          const glm::vec3& light_pos,
+                                          float far_plane) {
     if (!_shadow_shader || !_shadow_shader->valid()) {
         std::cerr << "ERROR::STANDARD_MATERIAL::Shadow shader not initialized" << std::endl;
-        return;
+        return false;
     }
 
     _shadow_shader->use();
     _shadow_shader->set_mat4("model", transform);
     _shadow_shader->set_mat4("lightSpaceMatrix", light_space_matrix);
-    _shadow_shader->set_bool("useSkinning", false);
-    _shadow_shader->set_bool("isPointLight", false);
-    draw_mesh(mesh);
+    _shadow_shader->set_bool("useSkinning", skeleton != nullptr);
+    _shadow_shader->set_bool("isPointLight", is_point_light);
+
+    if (is_point_light) {
+        _shadow_shader->set_vec3("lightPos", light_pos);
+        _shadow_shader->set_float("farPlane", far_plane);
+    }
+
+    if (skeleton) {
+        set_bone_transforms(skeleton, *_shadow_shader);
+    }
+
+    return true;
+}
+
+void StandardMaterial::render_shadow(const Mesh& mesh, const glm::mat4& transform,
+                                      const glm::mat4& light_space_matrix) {
+    if (begin_shadow_pass(transform, light_space_matrix, nullptr, false)) {
+        draw_mesh(mesh);
+    }
 }
 
 void StandardMaterial::render_shadow_skinned(const Mesh& mesh, const glm::mat4& transform,
                                               const Skeleton& skeleton,
                                               const glm::mat4& light_space_matrix) {
-    if (!_shadow_shader || !_shadow_shader->valid()) {
-        std::cerr << "ERROR::STANDARD_MATERIAL::Shadow shader not initialized" << std::endl;
-        return;
+    if (begin_shadow_pass(transform, light_space_matrix, &skeleton, false)) {
+        draw_mesh(mesh);
     }
-
-    _shadow_shader->use();
-    _shadow_shader->set_mat4("model", transform);
-    _shadow_shader->set_mat4("lightSpaceMatrix", light_space_matrix);
-    _shadow_shader->set_bool("useSkinning", true);
-    _shadow_shader->set_bool("isPointLight", false);
-    set_bone_transforms(&skeleton, *_shadow_shader);
-    draw_mesh(mesh);
 }
 
 void StandardMaterial::render_shadow_cube(const Mesh& mesh, const glm::mat4& transform,
                                            const glm::mat4& light_space_matrix,
                                            const glm::vec3& light_pos, float far_plane) {
-    if (!_shadow_shader || !_shadow_shader->valid()) {
-        std::cerr << "ERROR::STANDARD_MATERIAL::Shadow shader not initialized" << std::endl;
-        return;
+    if (begin_shadow_pass(transform, light_space_matrix, nullptr, true, light_pos, far_plane)) {
+        draw_mesh(mesh);
     }
-
-    _shadow_shader->use();
-    _shadow_shader->set_mat4("model", transform);
-    _shadow_shader->set_mat4("lightSpaceMatrix", light_space_matrix);
-    _shadow_shader->set_bool("useSkinning", false);
-    _shadow_shader->set_bool("isPointLight", true);
-    _shadow_shader->set_vec3("lightPos", light_pos);
-    _shadow_shader->set_float("farPlane", far_plane);
-    draw_mesh(mesh);
 }
 
 void StandardMaterial::render_shadow_cube_skinned(const Mesh& mesh, const glm::mat4& transform,
                                                    const Skeleton& skeleton,
                                                    const glm::mat4& light_space_matrix,
                                                    const glm::vec3& light_pos, float far_plane) {
-    if (!_shadow_shader || !_shadow_shader->valid()) {
-        std::cerr << "ERROR::STANDARD_MATERIAL::Shadow shader not initialized" << std::endl;
-        return;
+    if (begin_shadow_pass(transform, light_space_matrix, &skeleton, true, light_pos, far_plane)) {
+        draw_mesh(mesh);
     }
-
-    _shadow_shader->use();
-    _shadow_shader->set_mat4("model", transform);
-    _shadow_shader->set_mat4("lightSpaceMatrix", light_space_matrix);
-    _shadow_shader->set_bool("useSkinning", true);
-    _shadow_shader->set_bool("isPointLight", true);
-    _shadow_shader->set_vec3("lightPos", light_pos);
-    _shadow_shader->set_float("farPlane", far_plane);
-    set_bone_transforms(&skeleton, *_shadow_shader);
-    draw_mesh(mesh);
 }
 
 // ============================================================================

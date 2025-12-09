@@ -83,6 +83,13 @@ private:
     void set_bone_transforms(const Skeleton* skeleton, const Shader& shader);
     void bind_textures();
     void draw_mesh(const Mesh& mesh);
+
+    bool begin_shadow_pass(const glm::mat4& transform,
+                           const glm::mat4& light_space_matrix,
+                           const Skeleton* skeleton,
+                           bool is_point_light,
+                           const glm::vec3& light_pos = glm::vec3(0.0f),
+                           float far_plane = 0.0f);
 };
 
 }  // namespace engine::pbr
