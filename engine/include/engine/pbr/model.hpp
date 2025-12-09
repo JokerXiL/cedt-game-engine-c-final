@@ -88,7 +88,7 @@ public:
     /// Find animation by name
     std::shared_ptr<AnimationClip> find_animation(const std::string& name) const {
         for (const auto& anim : _animations) {
-            if (anim->get_name() == name) {
+            if (anim->name() == name) {
                 return anim;
             }
         }

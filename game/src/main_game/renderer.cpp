@@ -113,8 +113,8 @@ Renderer::Renderer()
     
     for (size_t i = 0; i < _player_model.get()->animation_count(); ++i) {
         auto anim = *_player_model->get_animation(i);
-        std::cout << "Animation " << i << ": " << anim.get_name() << std::endl;
-        std::cout << "  Duration: " << (anim.get_duration() / anim.get_ticks_per_second()) << " seconds" << std::endl;
+        std::cout << "Animation " << i << ": " << anim.name() << std::endl;
+        std::cout << "  Duration: " << (anim.duration() / anim.ticks_per_second()) << " seconds" << std::endl;
     }
     // Create enemy cube mesh and materials (different colors per type)
     _enemy_mesh = engine::pbr::mesh_factory::create_cube(1.0f);

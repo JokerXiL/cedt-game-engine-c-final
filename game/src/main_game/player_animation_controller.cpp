@@ -54,7 +54,7 @@ void PlayerAnimationController::update(
 }
 
 void PlayerAnimationController::apply(engine::pbr::Skeleton& skeleton) {
-    if (_state.get_clip()) {
+    if (_state.clip()) {
         _state.apply(skeleton);
     }
 }

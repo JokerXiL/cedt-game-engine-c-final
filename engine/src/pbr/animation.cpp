@@ -260,7 +260,7 @@ void AnimationState::update(float delta_time) {
         return;
     }
 
-    float ticks_per_second = _clip->get_ticks_per_second();
+    float ticks_per_second = _clip->ticks_per_second();
     if (ticks_per_second <= 0.0f) {
         ticks_per_second = 25.0f;
     }
@@ -268,7 +268,7 @@ void AnimationState::update(float delta_time) {
     float delta_ticks = delta_time * ticks_per_second * _speed;
     _current_time += delta_ticks;
 
-    float duration = _clip->get_duration();
+    float duration = _clip->duration();
     if (duration > 0.0f) {
         if (_looping) {
             _current_time = std::fmod(_current_time, duration);
@@ -288,12 +288,12 @@ void AnimationState::update(float delta_time) {
 
     // Update previous animation time if blending
     if (_blend_factor < 1.0f && _prev_clip) {
-        float prev_tps = _prev_clip->get_ticks_per_second();
+        float prev_tps = _prev_clip->ticks_per_second();
         if (prev_tps <= 0.0f) prev_tps = 25.0f;
 
         _prev_time += delta_time * prev_tps * _speed;
 
-        float prev_duration = _prev_clip->get_duration();
+        float prev_duration = _prev_clip->duration();
         if (prev_duration > 0.0f && _prev_looping) {
             _prev_time = std::fmod(_prev_time, prev_duration);
             if (_prev_time < 0.0f) _prev_time += prev_duration;
@@ -340,10 +340,10 @@ void AnimationState::apply(Skeleton& skeleton) const {
     }
 }
 
-float AnimationState::get_progress() const {
+float AnimationState::progress() const {
     if (!_clip) return 0.0f;
 
-    float duration = _clip->get_duration();
+    float duration = _clip->duration();
     if (duration <= 0.0f) return 0.0f;
 
     return _current_time / duration;

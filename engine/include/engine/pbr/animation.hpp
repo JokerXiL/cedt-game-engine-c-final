@@ -10,10 +10,6 @@
 #include <memory>
 #include <unordered_map>
 
-namespace engine::resource {
-class ModelLoader;
-}  // namespace engine::resource
-
 namespace engine::pbr {
 
 /// A keyframe for position animation
@@ -55,17 +51,20 @@ class AnimationClip {
 public:
     AnimationClip() = default;
 
-    /// Get animation name
-    const std::string& get_name() const { return _name; }
+    // Getters
+    const std::string& name() const { return _name; }
+    float duration() const { return _duration; }
+    float ticks_per_second() const { return _ticks_per_second; }
+    const std::vector<AnimationChannel>& channels() const { return _channels; }
 
-    /// Get animation duration in seconds
-    float get_duration() const { return _duration; }
-
-    /// Get ticks per second (frame rate)
-    float get_ticks_per_second() const { return _ticks_per_second; }
-
-    /// Get all channels
-    const std::vector<AnimationChannel>& get_channels() const { return _channels; }
+    // Setters (for loading)
+    void set_name(std::string name) { _name = std::move(name); }
+    void set_duration(float duration) { _duration = duration; }
+    void set_ticks_per_second(float tps) { _ticks_per_second = tps; }
+    void add_channel(AnimationChannel channel) {
+        _channels.push_back(std::move(channel));
+        _cache_built = false;
+    }
 
     /// Apply animation to a skeleton at the given time
     void apply(Skeleton& skeleton, float time) const;
@@ -76,15 +75,12 @@ public:
     /// Build channel-to-node cache for a skeleton (call once per skeleton)
     void build_cache(const Skeleton& skeleton) const;
 
-public:
-    friend class resource::ModelLoader;
-
+private:
     std::string _name;
-    float _duration = 0.0f;  // Duration in ticks
-    float _ticks_per_second = 25.0f;  // Default 25 FPS
+    float _duration = 0.0f;
+    float _ticks_per_second = 25.0f;
     std::vector<AnimationChannel> _channels;
 
-private:
     // Cached channel name to index mapping (built lazily)
     mutable std::unordered_map<std::string, size_t> _channel_index_cache;
     mutable bool _cache_built = false;
@@ -105,7 +101,7 @@ public:
     void crossfade_to(std::shared_ptr<AnimationClip> clip, float duration, bool loop = true);
 
     /// Get current animation clip
-    std::shared_ptr<AnimationClip> get_clip() const { return _clip; }
+    std::shared_ptr<AnimationClip> clip() const { return _clip; }
 
     /// Update animation state
     void update(float delta_time);
@@ -134,20 +130,16 @@ public:
     /// Check if animation is looping
     bool is_looping() const { return _looping; }
 
-    /// Set playback speed (1.0 = normal, 2.0 = 2x speed, etc.)
+    /// Set playback speed
     void set_speed(float speed) { _speed = speed; }
+    float speed() const { return _speed; }
 
-    /// Get playback speed
-    float get_speed() const { return _speed; }
-
-    /// Get current time in animation
-    float get_current_time() const { return _current_time; }
-
-    /// Set current time in animation
+    /// Current time in animation
     void set_current_time(float time) { _current_time = time; }
+    float current_time() const { return _current_time; }
 
     /// Get animation progress (0.0 to 1.0)
-    float get_progress() const;
+    float progress() const;
 
     /// Check if currently blending between animations
     bool is_blending() const { return _blend_factor < 1.0f; }

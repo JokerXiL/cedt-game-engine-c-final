@@ -194,11 +194,11 @@ std::vector<std::shared_ptr<pbr::AnimationClip>> extract_animations(const aiScen
         aiAnimation* ai_anim = scene->mAnimations[anim_idx];
 
         auto clip = std::make_shared<pbr::AnimationClip>();
-        clip->_name = ai_anim->mName.C_Str();
-        clip->_duration = static_cast<float>(ai_anim->mDuration);
-        clip->_ticks_per_second = ai_anim->mTicksPerSecond > 0.0
+        clip->set_name(ai_anim->mName.C_Str());
+        clip->set_duration(static_cast<float>(ai_anim->mDuration));
+        clip->set_ticks_per_second(ai_anim->mTicksPerSecond > 0.0
             ? static_cast<float>(ai_anim->mTicksPerSecond)
-            : 25.0f;
+            : 25.0f);
 
         // Process each animation channel
         for (unsigned int channel_idx = 0; channel_idx < ai_anim->mNumChannels; ++channel_idx) {
@@ -238,7 +238,7 @@ std::vector<std::shared_ptr<pbr::AnimationClip>> extract_animations(const aiScen
                 channel.scale_keys.push_back(key);
             }
 
-            clip->_channels.push_back(channel);
+            clip->add_channel(std::move(channel));
         }
 
         animations.push_back(clip);
