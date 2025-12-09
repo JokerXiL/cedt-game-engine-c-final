@@ -190,16 +190,16 @@ Renderer::Renderer()
     sun.shadow_map_index = 0;
     _scene->add_light(sun);
 
-    // Fill light (point light with shadow)
-    auto fill = engine::pbr::Light::create_point(
-        glm::vec3(-5.0f, 8.0f, 5.0f),   // position
-        glm::vec3(0.4f, 0.5f, 0.6f),    // cool blue tint
-        15.0f,                            // intensity
-        30.0f                            // range
-    );
-    fill.casts_shadow = true;
-    fill.shadow_map_index = 0;  // Use first cubemap slot (index 0 for point lights)
-    _scene->add_light(fill);
+    // // Fill light (point light with shadow)
+    // auto fill = engine::pbr::Light::create_point(
+    //     glm::vec3(-5.0f, 8.0f, 5.0f),   // position
+    //     glm::vec3(0.4f, 0.5f, 0.6f),    // cool blue tint
+    //     15.0f,                            // intensity
+    //     30.0f                            // range
+    // );
+    // fill.casts_shadow = true;
+    // fill.shadow_map_index = 0;  // Use first cubemap slot (index 0 for point lights)
+    // _scene->add_light(fill);
 }
 
 Renderer::~Renderer() = default;
