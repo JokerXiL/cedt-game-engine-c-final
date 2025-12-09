@@ -38,6 +38,10 @@ private:
     void render_spot_shadow(const Light& light);
     void render_point_shadow(const Light& light);
 
+    void render_shadow_renderables(const glm::mat4& light_space_matrix);
+    void render_shadow_renderables_cube(const glm::mat4& light_space_matrix,
+                                        const glm::vec3& light_pos, float far_plane);
+
     glm::mat4 calculate_directional_light_matrix(const Light& light, const Camera& camera);
     glm::mat4 calculate_spot_light_matrix(const Light& light);
     std::array<glm::mat4, 6> calculate_point_light_matrices(const Light& light, float far_plane);

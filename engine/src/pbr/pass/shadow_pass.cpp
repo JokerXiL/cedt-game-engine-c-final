@@ -100,36 +100,61 @@ void ShadowPass::bind_shadow_textures(int start_texture_unit) {
     glActiveTexture(GL_TEXTURE0);
 }
 
-void ShadowPass::render_directional_shadow(const Light& light, const Camera& camera) {
-    auto* shadow_map = get_shadow_map(light.shadow_map_index);
-    if (!shadow_map) return;
-
-    shadow_map->light_space_matrix = calculate_directional_light_matrix(light, camera);
-
-    shadow_map->bind_for_writing();
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_FRONT);  // Reduce shadow acne
-
+void ShadowPass::render_shadow_renderables(const glm::mat4& light_space_matrix) {
     for (const auto& r : _pbr_context->renderables) {
         if (!r.casts_shadow) continue;
 
         if (r.model) {
             if (r.skeleton) {
-                r.model->render_shadow_skinned(r.transform, *r.skeleton,
-                                               shadow_map->light_space_matrix);
+                r.model->render_shadow_skinned(r.transform, *r.skeleton, light_space_matrix);
             } else {
-                r.model->render_shadow(r.transform, shadow_map->light_space_matrix);
+                r.model->render_shadow(r.transform, light_space_matrix);
             }
         } else if (r.mesh && r.material) {
             if (r.skeleton) {
                 r.material->render_shadow_skinned(*r.mesh, r.transform, *r.skeleton,
-                                                  shadow_map->light_space_matrix);
+                                                  light_space_matrix);
             } else {
-                r.material->render_shadow(*r.mesh, r.transform,
-                                           shadow_map->light_space_matrix);
+                r.material->render_shadow(*r.mesh, r.transform, light_space_matrix);
             }
         }
     }
+}
+
+void ShadowPass::render_shadow_renderables_cube(const glm::mat4& light_space_matrix,
+                                                 const glm::vec3& light_pos, float far_plane) {
+    for (const auto& r : _pbr_context->renderables) {
+        if (!r.casts_shadow) continue;
+
+        if (r.model) {
+            if (r.skeleton) {
+                r.model->render_shadow_cube_skinned(r.transform, *r.skeleton,
+                                                    light_space_matrix, light_pos, far_plane);
+            } else {
+                r.model->render_shadow_cube(r.transform, light_space_matrix, light_pos, far_plane);
+            }
+        } else if (r.mesh && r.material) {
+            if (r.skeleton) {
+                r.material->render_shadow_cube_skinned(*r.mesh, r.transform, *r.skeleton,
+                                                       light_space_matrix, light_pos, far_plane);
+            } else {
+                r.material->render_shadow_cube(*r.mesh, r.transform,
+                                               light_space_matrix, light_pos, far_plane);
+            }
+        }
+    }
+}
+
+void ShadowPass::render_directional_shadow(const Light& light, const Camera& camera) {
+    auto* shadow_map = get_shadow_map(light.shadow_map_index);
+    if (!shadow_map) return;
+
+    shadow_map->light_space_matrix = calculate_directional_light_matrix(light, camera);
+    shadow_map->bind_for_writing();
+    glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_FRONT);
+
+    render_shadow_renderables(shadow_map->light_space_matrix);
 
     glCullFace(GL_BACK);
     shadow_map->unbind();
@@ -140,31 +165,11 @@ void ShadowPass::render_spot_shadow(const Light& light) {
     if (!shadow_map) return;
 
     shadow_map->light_space_matrix = calculate_spot_light_matrix(light);
-
     shadow_map->bind_for_writing();
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_FRONT);
 
-    for (const auto& r : _pbr_context->renderables) {
-        if (!r.casts_shadow) continue;
-
-        if (r.model) {
-            if (r.skeleton) {
-                r.model->render_shadow_skinned(r.transform, *r.skeleton,
-                                               shadow_map->light_space_matrix);
-            } else {
-                r.model->render_shadow(r.transform, shadow_map->light_space_matrix);
-            }
-        } else if (r.mesh && r.material) {
-            if (r.skeleton) {
-                r.material->render_shadow_skinned(*r.mesh, r.transform, *r.skeleton,
-                                                  shadow_map->light_space_matrix);
-            } else {
-                r.material->render_shadow(*r.mesh, r.transform,
-                                           shadow_map->light_space_matrix);
-            }
-        }
-    }
+    render_shadow_renderables(shadow_map->light_space_matrix);
 
     glCullFace(GL_BACK);
     shadow_map->unbind();
@@ -187,35 +192,8 @@ void ShadowPass::render_point_shadow(const Light& light) {
         glEnable(GL_DEPTH_TEST);
         glCullFace(GL_FRONT);
 
-        for (const auto& r : _pbr_context->renderables) {
-            if (!r.casts_shadow) continue;
-
-            if (r.model) {
-                if (r.skeleton) {
-                    r.model->render_shadow_cube_skinned(
-                        r.transform, *r.skeleton,
-                        cubemap->light_space_matrices[face],
-                        light.position, far_plane);
-                } else {
-                    r.model->render_shadow_cube(
-                        r.transform,
-                        cubemap->light_space_matrices[face],
-                        light.position, far_plane);
-                }
-            } else if (r.mesh && r.material) {
-                if (r.skeleton) {
-                    r.material->render_shadow_cube_skinned(
-                        *r.mesh, r.transform, *r.skeleton,
-                        cubemap->light_space_matrices[face],
-                        light.position, far_plane);
-                } else {
-                    r.material->render_shadow_cube(
-                        *r.mesh, r.transform,
-                        cubemap->light_space_matrices[face],
-                        light.position, far_plane);
-                }
-            }
-        }
+        render_shadow_renderables_cube(cubemap->light_space_matrices[face],
+                                       light.position, far_plane);
 
         glCullFace(GL_BACK);
         cubemap->unbind();
