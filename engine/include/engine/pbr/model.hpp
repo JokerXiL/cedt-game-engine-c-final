@@ -54,20 +54,6 @@ public:
                                     const glm::vec3& light_pos, float far_plane);
 
     // ========================================================================
-    // Legacy render methods (for backwards compatibility)
-    // ========================================================================
-
-    /// Legacy render - uses single light position
-    void render(const glm::mat4& transform, const Camera& camera,
-                const glm::vec3& light_pos,
-                const glm::vec3& light_color = glm::vec3(1.0f));
-
-    /// Legacy skinned render - uses single light position
-    void render_skinned(const glm::mat4& transform, const Skeleton& skeleton,
-                        const Camera& camera, const glm::vec3& light_pos,
-                        const glm::vec3& light_color = glm::vec3(1.0f));
-
-    // ========================================================================
     // Accessors
     // ========================================================================
 
