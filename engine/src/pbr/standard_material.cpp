@@ -174,8 +174,13 @@ void StandardMaterial::render_skinned(const Mesh& mesh, const glm::mat4& transfo
     }
 
     set_common_uniforms(transform, scene);
-    _shader->set_bool("useSkinning", true);
-    set_bone_transforms(&skeleton, *_shader);
+
+    // Only enable skinning if skeleton has bones
+    bool has_bones = skeleton.get_bone_count() > 0;
+    _shader->set_bool("useSkinning", has_bones);
+    if (has_bones) {
+        set_bone_transforms(&skeleton, *_shader);
+    }
     draw_mesh(mesh);
 }
 
@@ -197,7 +202,6 @@ bool StandardMaterial::begin_shadow_pass(const glm::mat4& transform,
     _shadow_shader->use();
     _shadow_shader->set_mat4("model", transform);
     _shadow_shader->set_mat4("lightSpaceMatrix", light_space_matrix);
-    _shadow_shader->set_bool("useSkinning", skeleton != nullptr);
     _shadow_shader->set_bool("isPointLight", is_point_light);
 
     if (is_point_light) {
@@ -205,7 +209,10 @@ bool StandardMaterial::begin_shadow_pass(const glm::mat4& transform,
         _shadow_shader->set_float("farPlane", far_plane);
     }
 
-    if (skeleton) {
+    // Only enable skinning if skeleton exists and has bones
+    bool has_bones = skeleton && skeleton->get_bone_count() > 0;
+    _shadow_shader->set_bool("useSkinning", has_bones);
+    if (has_bones) {
         set_bone_transforms(skeleton, *_shadow_shader);
     }
 

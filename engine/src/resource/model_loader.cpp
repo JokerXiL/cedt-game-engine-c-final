@@ -25,7 +25,11 @@ pbr::MeshData process_mesh(aiMesh* mesh) {
     if (mesh->HasVertexColors(0)) data.colors.reserve(mesh->mNumVertices);
 
     // Initialize bone weights and indices with defaults
-    data.joint_weights.resize(mesh->mNumVertices, glm::vec4(0.0f));
+    // If mesh has no bones, set weight to 1.0 so vertices render correctly
+    // when accidentally used with skinning enabled
+    bool has_bones = mesh->mNumBones > 0;
+    glm::vec4 default_weight = has_bones ? glm::vec4(0.0f) : glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    data.joint_weights.resize(mesh->mNumVertices, default_weight);
     data.joint_indices.resize(mesh->mNumVertices, glm::ivec4(0));
 
     // Process vertices

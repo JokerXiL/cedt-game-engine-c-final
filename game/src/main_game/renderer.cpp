@@ -109,7 +109,7 @@ Renderer::Renderer()
     _ground_mesh = engine::pbr::mesh_factory::create_plane(100.0f, 100.0f);
 
     // Load player model (materials are created inside ModelLoader)
-    _player_model = _model_cache->load("samira_blender2.glb");
+    _player_model = _model_cache->load("player.glb");
     
     for (size_t i = 0; i < _player_model.get()->animation_count(); ++i) {
         auto anim = *_player_model->get_animation(i);
@@ -253,11 +253,11 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
             player_skeleton.bone_index_map = model_skeleton->bone_index_map;
             player_skeleton.root_node = model_skeleton->root_node;
             
-            // Initialize transforms to the inverse of inverse bind pose for T-pose
-            // Since bindpose contains inverse bind matrices, we need to invert them
-            // to get the actual bind pose (T-pose) transforms
-            for (size_t i = 0; i < model_bone_count && i < model_skeleton->bindpose->size(); ++i) {
-                player_skeleton.transforms[i] = glm::inverse((*model_skeleton->bindpose)[i]);
+            // Initialize transforms for T-pose (bind pose)
+            // For the mesh to render in its original pose, bone transforms should be identity
+            // (skinning becomes a no-op, vertices stay where they are in mesh space)
+            for (size_t i = 0; i < model_bone_count; ++i) {
+                player_skeleton.transforms[i] = glm::mat4(1.0f);
             }
             
             // Initialize animation clips if available
@@ -281,8 +281,12 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
     glm::mat4 ground_transform = glm::translate(glm::mat4(1.0f), glm::vec3(player_pos.x, 0.0f, player_pos.z));
     _pbr_context.submit(*_ground_mesh, *_ground_material, ground_transform);
     
-    // Submit player with skinned rendering
-    _pbr_context.submit_skinned(*_player_model, get_player_transform(game_state), game_state.player.get_skeleton());
+    // Submit player - use skinned rendering only if model has a skeleton
+    if (_player_model->get_skeleton() && _player_model->get_skeleton()->get_bone_count() > 0) {
+        _pbr_context.submit_skinned(*_player_model, get_player_transform(game_state), game_state.player.get_skeleton());
+    } else {
+        _pbr_context.submit(*_player_model, get_player_transform(game_state));
+    }
 
     // Submit enemies (colored by type)
     for (const auto& enemy : game_state.enemy_manager.enemies()) {
@@ -347,7 +351,6 @@ glm::mat4 Renderer::get_player_transform(const GameState& game_state) const {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, player.position());
     transform = glm::rotate(transform, player.rotation_y(), glm::vec3(0.0f, 1.0f, 0.0f));
-    transform = glm::scale(transform,glm::vec3(0.6f));
     return transform;
 }
 
