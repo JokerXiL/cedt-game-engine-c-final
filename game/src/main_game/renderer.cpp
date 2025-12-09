@@ -260,47 +260,19 @@ void Renderer::render(const GameState& game_state, std::function<void()> ui_call
                 player_skeleton.transforms[i] = glm::inverse((*model_skeleton->bindpose)[i]);
             }
             
-            std::cout << "Player skeleton initialized from model:" << std::endl;
-            std::cout << "  Model skeleton bone count: " << model_bone_count << std::endl;
-            std::cout << "  Player skeleton bone count: " << player_skeleton.get_bone_count() << std::endl;
-            
-            // Initialize animation if available
-            auto& player_anim_state = const_cast<GameState&>(game_state).player.get_animation_state();
+            // Initialize animation clips if available
             if (_player_model->animation_count() > 0) {
-                std::cout << "  Found " << _player_model->animation_count() << " animations:" << std::endl;
-                for (size_t i = 0; i < _player_model->animation_count(); ++i) {
-                    auto anim = _player_model->get_animation(i);
-                    if (anim) {
-                        std::cout << "    [" << i << "] " << anim->get_name() 
-                                  << " (" << (anim->get_duration() / anim->get_ticks_per_second()) 
-                                  << " seconds)" << std::endl;
-                    }
-                }
-
-                // Set the first animation and start playing
-                auto first_anim = _player_model->find_animation("Idle.anm_Skeleton");
-                if (first_anim) {
-                    player_anim_state.set_clip(first_anim);
-                    player_anim_state.set_looping(true);
-                    player_anim_state.play();
-                    std::cout << "  Started playing animation: " << first_anim->get_name() << std::endl;
-                }
                 auto idle_anim = _player_model->find_animation("Idle.anm_Skeleton");
                 auto run_anim = _player_model->find_animation("Run_Gun.anm_Skeleton");
                 auto melee_anim = _player_model->find_animation("Spell1_Sword_Run.anm_Skeleton");
                 auto ranged_anim = _player_model->find_animation("Spell1_Gun.anm_Skeleton");
-                const_cast<GameState&>(game_state).player.set_animation_clips(idle_anim,run_anim,melee_anim,ranged_anim);
-
-            } else {
-                std::cout << "  No animations found in model" << std::endl;
+                const_cast<GameState&>(game_state).player.set_animation_clips(
+                    idle_anim, run_anim, melee_anim, ranged_anim);
             }
-            
+
             skeleton_initialized = true;
         }
     } else if (!skeleton_initialized) {
-        std::cout << "Warning: Could not initialize player skeleton - model or skeleton is null" << std::endl;
-        if (!_player_model) std::cout << "  _player_model is null" << std::endl;
-        else if (!_player_model->get_skeleton()) std::cout << "  model->get_skeleton() is null" << std::endl;
         skeleton_initialized = true;
     }
 

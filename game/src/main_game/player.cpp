@@ -3,9 +3,7 @@
 #include <engine/input/input_system.hpp>
 #include <engine/input/key_codes.hpp>
 
-#include <iostream>
 #include <cmath>
-#include <limits>
 
 namespace main_game {
 
@@ -49,8 +47,10 @@ void Player::update(GameState& game_state, float delta) {
     _position += _velocity;
     _input_direction = glm::vec3(0.0f);
 
-    // Update animation state machine
-    update_animation_state(delta);
+    // Update animation
+    bool is_moving = glm::length(_velocity) > 0.01f;
+    _animation_controller.update(delta, is_moving, _main_attack_cooldown > 0.0f, _sub_attack_cooldown > 0.0f);
+    _animation_controller.apply(_skeleton);
 }
 
 void Player::process_input(GameState& state) {
@@ -116,9 +116,8 @@ void Player::attack_main(GameState& game_state) {
 
     glm::vec3 facing = game_state.camera.get_aim_direction(_position);
     _main_weapon->attack(game_state, _position, facing);
-    
-    // Trigger melee attack animation
-    transition_to_animation(AnimationStateType::MeleeAttack);
+
+    _animation_controller.trigger_melee_attack();
 }
 
 void Player::attack_sub(GameState& game_state) {
@@ -129,9 +128,8 @@ void Player::attack_sub(GameState& game_state) {
 
     glm::vec3 facing = game_state.camera.get_aim_direction(_position);
     _sub_weapon->attack(game_state, _position, facing);
-    
-    // Trigger range attack animation
-    transition_to_animation(AnimationStateType::RangeAttack);
+
+    _animation_controller.trigger_range_attack();
 }
 
 // Perk application methods
@@ -186,115 +184,7 @@ void Player::set_animation_clips(
     std::shared_ptr<engine::pbr::AnimationClip> melee_attack,
     std::shared_ptr<engine::pbr::AnimationClip> range_attack)
 {
-    _anim_idle = idle;
-    _anim_run = run;
-    _anim_melee_attack = melee_attack;
-    _anim_range_attack = range_attack;
-    
-    // Start with idle animation
-    if (_anim_idle) {
-        _animation_state.set_clip(_anim_idle);
-        _animation_state.set_looping(true);
-        _animation_state.play();
-    }
-}
-
-void Player::update_animation_state(float delta) {
-    // Update attack animation timer - match weapon cooldown
-    if (_is_playing_attack_animation) {
-        // Check if attack animation finished based on cooldown
-        float attack_duration = 0.0f;
-        if (_current_anim_state == AnimationStateType::MeleeAttack) {
-            attack_duration = _main_weapon->cooldown() / _attack_speed_multiplier;
-        } else if (_current_anim_state == AnimationStateType::RangeAttack) {
-            attack_duration = _sub_weapon->cooldown() / _attack_speed_multiplier;
-        }
-        
-        // Animation ends when cooldown expires
-        bool animation_finished = false;
-        if (_current_anim_state == AnimationStateType::MeleeAttack) {
-            animation_finished = (_main_attack_cooldown <= 0.0f);
-        } else if (_current_anim_state == AnimationStateType::RangeAttack) {
-            animation_finished = (_sub_attack_cooldown <= 0.0f);
-        }
-        
-        if (animation_finished) {
-            _is_playing_attack_animation = false;
-            
-            // Return to idle or run based on movement
-            if (glm::length(_velocity) > 0.01f) {
-                transition_to_animation(AnimationStateType::Running);
-            } else {
-                transition_to_animation(AnimationStateType::Idle);
-            }
-        }
-    } else {
-        // Not attacking - update based on movement
-        bool is_moving = glm::length(_velocity) > 0.01f;
-        
-        if (is_moving && _current_anim_state != AnimationStateType::Running) {
-            transition_to_animation(AnimationStateType::Running);
-        } else if (!is_moving && _current_anim_state != AnimationStateType::Idle) {
-            transition_to_animation(AnimationStateType::Idle);
-        }
-    }
-    
-    // Update blend progress
-    if (_current_blend_progress < 1.0f) {
-        _current_blend_progress += delta / _animation_blend_time;
-        if (_current_blend_progress > 1.0f) {
-            _current_blend_progress = 1.0f;
-        }
-    }
-    
-    // Update and apply animation
-    if (_animation_state.get_clip()) {
-        _animation_state.update(delta);
-        _animation_state.apply(_skeleton);
-    }
-}
-
-void Player::transition_to_animation(AnimationStateType new_state) {
-    if (_current_anim_state == new_state) return;
-    
-    _current_anim_state = new_state;
-    _current_blend_progress = 0.0f;  // Start blending
-    
-    std::shared_ptr<engine::pbr::AnimationClip> target_clip;
-    bool should_loop = true;
-    
-    switch (new_state) {
-        case AnimationStateType::Idle:
-            target_clip = _anim_idle;
-            should_loop = true;
-            break;
-            
-        case AnimationStateType::Running:
-            target_clip = _anim_run;
-            should_loop = true;
-            break;
-            
-        case AnimationStateType::MeleeAttack:
-            target_clip = _anim_melee_attack;
-            should_loop = false;
-            _is_playing_attack_animation = true;
-            _attack_animation_timer = 0.0f;
-            break;
-            
-        case AnimationStateType::RangeAttack:
-            target_clip = _anim_range_attack;
-            should_loop = false;
-            _is_playing_attack_animation = true;
-            _attack_animation_timer = 0.0f;
-            break;
-    }
-    
-    if (target_clip) {
-        _animation_state.set_clip(target_clip);
-        _animation_state.set_looping(should_loop);
-        _animation_state.set_current_time(0.0f);
-        _animation_state.play();
-    }
+    _animation_controller.set_clips(idle, run, melee_attack, range_attack);
 }
 
 } // namespace main_game
