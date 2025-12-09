@@ -1,6 +1,10 @@
-# VS3D
+# Game
 
 A 3D action game built on a custom OpenGL engine.
+
+## Demo
+
+[![Demo](https://img.youtube.com/vi/J0K--sE9Yv8/maxresdefault.jpg)](https://youtu.be/J0K--sE9Yv8)
 
 ## Building
 
