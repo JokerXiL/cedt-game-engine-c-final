@@ -54,29 +54,37 @@ private:
 class AnimationClip {
 public:
     AnimationClip() = default;
-    
+
     /// Get animation name
     const std::string& get_name() const { return _name; }
-    
+
     /// Get animation duration in seconds
     float get_duration() const { return _duration; }
-    
+
     /// Get ticks per second (frame rate)
     float get_ticks_per_second() const { return _ticks_per_second; }
-    
+
     /// Get all channels
     const std::vector<AnimationChannel>& get_channels() const { return _channels; }
-    
+
     /// Apply animation to a skeleton at the given time
     void apply(Skeleton& skeleton, float time, float blend_factor = 1.0f) const;
 
+    /// Build channel-to-node cache for a skeleton (call once per skeleton)
+    void build_cache(const Skeleton& skeleton) const;
+
 public:
     friend class resource::ModelLoader;
-    
+
     std::string _name;
     float _duration = 0.0f;  // Duration in ticks
     float _ticks_per_second = 25.0f;  // Default 25 FPS
     std::vector<AnimationChannel> _channels;
+
+private:
+    // Cached channel name to index mapping (built lazily)
+    mutable std::unordered_map<std::string, size_t> _channel_index_cache;
+    mutable bool _cache_built = false;
 };
 
 /// Animation state machine for controlling animation playback

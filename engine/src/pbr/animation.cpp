@@ -32,16 +32,18 @@ void calculate_bone_transform(
     Skeleton& skeleton,
     const SkeletonNode* node,
     const glm::mat4& parent_transform,
-    const std::unordered_map<std::string, glm::mat4>& animated_transforms)
+    const std::unordered_map<std::string, size_t>& channel_cache,
+    const std::vector<AnimationChannel>& channels,
+    float animation_time)
 {
     if (!node) return;
 
     glm::mat4 node_transform = node->transformation;
 
-    // Use animated transform if available
-    auto it = animated_transforms.find(node->name);
-    if (it != animated_transforms.end()) {
-        node_transform = it->second;
+    // Use animated transform if available (using cached index lookup)
+    auto it = channel_cache.find(node->name);
+    if (it != channel_cache.end()) {
+        node_transform = channels[it->second].evaluate(animation_time);
     }
 
     glm::mat4 global_transform = parent_transform * node_transform;
@@ -54,7 +56,7 @@ void calculate_bone_transform(
 
     // Process children
     for (const auto& child : node->children) {
-        calculate_bone_transform(skeleton, &child, global_transform, animated_transforms);
+        calculate_bone_transform(skeleton, &child, global_transform, channel_cache, channels, animation_time);
     }
 }
 
@@ -147,9 +149,24 @@ glm::mat4 AnimationChannel::evaluate(float time) const {
 // AnimationClip
 // ============================================================================
 
+void AnimationClip::build_cache(const Skeleton& /*skeleton*/) const {
+    if (_cache_built) return;
+
+    _channel_index_cache.clear();
+    for (size_t i = 0; i < _channels.size(); ++i) {
+        _channel_index_cache[_channels[i].bone_name] = i;
+    }
+    _cache_built = true;
+}
+
 void AnimationClip::apply(Skeleton& skeleton, float time, float /*blend_factor*/) const {
     if (_channels.empty() || !skeleton.bone_index_map) {
         return;
+    }
+
+    // Build cache lazily on first use
+    if (!_cache_built) {
+        build_cache(skeleton);
     }
 
     // Wrap time to animation duration
@@ -161,13 +178,8 @@ void AnimationClip::apply(Skeleton& skeleton, float time, float /*blend_factor*/
         }
     }
 
-    // Build map of animated transforms for this time
-    std::unordered_map<std::string, glm::mat4> animated_transforms;
-    for (const auto& channel : _channels) {
-        animated_transforms[channel.bone_name] = channel.evaluate(animation_time);
-    }
-
-    calculate_bone_transform(skeleton, skeleton.root_node.get(), glm::mat4(1.0f), animated_transforms);
+    calculate_bone_transform(skeleton, skeleton.root_node.get(), glm::mat4(1.0f),
+                            _channel_index_cache, _channels, animation_time);
 }
 
 // ============================================================================
