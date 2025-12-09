@@ -60,6 +60,37 @@ void calculate_bone_transform(
     }
 }
 
+/// Recursively sample bone transforms (stores to output vector instead of skeleton)
+void sample_bone_transform(
+    const Skeleton& skeleton,
+    const SkeletonNode* node,
+    const glm::mat4& parent_transform,
+    const std::unordered_map<std::string, size_t>& channel_cache,
+    const std::vector<AnimationChannel>& channels,
+    float animation_time,
+    std::vector<glm::mat4>& out_transforms)
+{
+    if (!node) return;
+
+    glm::mat4 node_transform = node->transformation;
+
+    auto it = channel_cache.find(node->name);
+    if (it != channel_cache.end()) {
+        node_transform = channels[it->second].evaluate(animation_time);
+    }
+
+    glm::mat4 global_transform = parent_transform * node_transform;
+
+    int bone_index = skeleton.get_bone_index(node->name);
+    if (bone_index >= 0 && static_cast<size_t>(bone_index) < out_transforms.size()) {
+        out_transforms[bone_index] = global_transform * (*skeleton.bindpose)[bone_index];
+    }
+
+    for (const auto& child : node->children) {
+        sample_bone_transform(skeleton, &child, global_transform, channel_cache, channels, animation_time, out_transforms);
+    }
+}
+
 }  // namespace
 
 // ============================================================================
@@ -159,17 +190,15 @@ void AnimationClip::build_cache(const Skeleton& /*skeleton*/) const {
     _cache_built = true;
 }
 
-void AnimationClip::apply(Skeleton& skeleton, float time, float /*blend_factor*/) const {
+void AnimationClip::apply(Skeleton& skeleton, float time) const {
     if (_channels.empty() || !skeleton.bone_index_map) {
         return;
     }
 
-    // Build cache lazily on first use
     if (!_cache_built) {
         build_cache(skeleton);
     }
 
-    // Wrap time to animation duration
     float animation_time = time;
     if (_duration > 0.0f) {
         animation_time = std::fmod(time, _duration);
@@ -182,9 +211,49 @@ void AnimationClip::apply(Skeleton& skeleton, float time, float /*blend_factor*/
                             _channel_index_cache, _channels, animation_time);
 }
 
+void AnimationClip::sample(float time, std::vector<glm::mat4>& out_transforms, const Skeleton& skeleton) const {
+    if (_channels.empty() || !skeleton.bone_index_map) {
+        return;
+    }
+
+    if (!_cache_built) {
+        build_cache(skeleton);
+    }
+
+    float animation_time = time;
+    if (_duration > 0.0f) {
+        animation_time = std::fmod(time, _duration);
+        if (animation_time < 0.0f) {
+            animation_time += _duration;
+        }
+    }
+
+    sample_bone_transform(skeleton, skeleton.root_node.get(), glm::mat4(1.0f),
+                         _channel_index_cache, _channels, animation_time, out_transforms);
+}
+
 // ============================================================================
 // AnimationState
 // ============================================================================
+
+void AnimationState::crossfade_to(std::shared_ptr<AnimationClip> clip, float duration, bool loop) {
+    if (!clip) return;
+
+    // Store current animation as previous for blending
+    _prev_clip = _clip;
+    _prev_time = _current_time;
+    _prev_looping = _looping;
+
+    // Set new animation
+    _clip = clip;
+    _current_time = 0.0f;
+    _looping = loop;
+    _playing = true;
+
+    // Start blend
+    _blend_factor = 0.0f;
+    _blend_duration = duration;
+}
 
 void AnimationState::update(float delta_time) {
     if (!_playing || !_clip) {
@@ -216,11 +285,58 @@ void AnimationState::update(float delta_time) {
             }
         }
     }
+
+    // Update previous animation time if blending
+    if (_blend_factor < 1.0f && _prev_clip) {
+        float prev_tps = _prev_clip->get_ticks_per_second();
+        if (prev_tps <= 0.0f) prev_tps = 25.0f;
+
+        _prev_time += delta_time * prev_tps * _speed;
+
+        float prev_duration = _prev_clip->get_duration();
+        if (prev_duration > 0.0f && _prev_looping) {
+            _prev_time = std::fmod(_prev_time, prev_duration);
+            if (_prev_time < 0.0f) _prev_time += prev_duration;
+        }
+
+        // Advance blend factor
+        if (_blend_duration > 0.0f) {
+            _blend_factor += delta_time / _blend_duration;
+            if (_blend_factor >= 1.0f) {
+                _blend_factor = 1.0f;
+                _prev_clip = nullptr;
+            }
+        } else {
+            _blend_factor = 1.0f;
+            _prev_clip = nullptr;
+        }
+    }
 }
 
 void AnimationState::apply(Skeleton& skeleton) const {
-    if (_clip) {
+    if (!_clip) return;
+
+    if (_blend_factor >= 1.0f || !_prev_clip) {
+        // No blending, just apply current animation
         _clip->apply(skeleton, _current_time);
+    } else {
+        // Blending between previous and current animation
+        size_t bone_count = skeleton.get_bone_count();
+
+        // Sample both animations
+        std::vector<glm::mat4> prev_transforms(bone_count, glm::mat4(1.0f));
+        std::vector<glm::mat4> curr_transforms(bone_count, glm::mat4(1.0f));
+
+        _prev_clip->sample(_prev_time, prev_transforms, skeleton);
+        _clip->sample(_current_time, curr_transforms, skeleton);
+
+        // Blend transforms (simple linear interpolation of matrices)
+        // Note: For better quality, decompose to TRS and interpolate separately
+        for (size_t i = 0; i < bone_count; ++i) {
+            glm::mat4 blended = prev_transforms[i] * (1.0f - _blend_factor) +
+                               curr_transforms[i] * _blend_factor;
+            skeleton.set_bone_transform(i, blended);
+        }
     }
 }
 

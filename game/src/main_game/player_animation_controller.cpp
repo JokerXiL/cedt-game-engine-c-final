@@ -76,10 +76,9 @@ void PlayerAnimationController::transition_to(PlayerAnimationType new_type) {
     auto clip = get_clip_for_type(new_type);
 
     if (clip) {
-        _state.set_clip(clip);
-        _state.set_looping(should_loop(new_type));
-        _state.set_current_time(0.0f);
-        _state.play();
+        // Use crossfade for smoother transitions
+        constexpr float BLEND_DURATION = 0.15f;
+        _state.crossfade_to(clip, BLEND_DURATION, should_loop(new_type));
     }
 }
 

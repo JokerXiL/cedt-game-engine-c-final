@@ -68,7 +68,10 @@ public:
     const std::vector<AnimationChannel>& get_channels() const { return _channels; }
 
     /// Apply animation to a skeleton at the given time
-    void apply(Skeleton& skeleton, float time, float blend_factor = 1.0f) const;
+    void apply(Skeleton& skeleton, float time) const;
+
+    /// Sample bone transforms at given time (for blending)
+    void sample(float time, std::vector<glm::mat4>& out_transforms, const Skeleton& skeleton) const;
 
     /// Build channel-to-node cache for a skeleton (call once per skeleton)
     void build_cache(const Skeleton& skeleton) const;
@@ -91,57 +94,63 @@ private:
 class AnimationState {
 public:
     AnimationState() = default;
-    
-    /// Set the animation clip to play
+
+    /// Set the animation clip to play (no blending)
     void set_clip(std::shared_ptr<AnimationClip> clip) {
         _clip = clip;
         _current_time = 0.0f;
     }
-    
+
+    /// Crossfade to a new animation clip over the specified duration
+    void crossfade_to(std::shared_ptr<AnimationClip> clip, float duration, bool loop = true);
+
     /// Get current animation clip
     std::shared_ptr<AnimationClip> get_clip() const { return _clip; }
-    
+
     /// Update animation state
     void update(float delta_time);
-    
+
     /// Apply current animation state to skeleton
     void apply(Skeleton& skeleton) const;
-    
+
     /// Play the animation
     void play() { _playing = true; }
-    
+
     /// Pause the animation
     void pause() { _playing = false; }
-    
+
     /// Stop and reset the animation
     void stop() {
         _playing = false;
         _current_time = 0.0f;
     }
-    
+
     /// Check if animation is playing
     bool is_playing() const { return _playing; }
-    
+
     /// Set whether animation should loop
     void set_looping(bool loop) { _looping = loop; }
-    
+
     /// Check if animation is looping
     bool is_looping() const { return _looping; }
-    
+
     /// Set playback speed (1.0 = normal, 2.0 = 2x speed, etc.)
     void set_speed(float speed) { _speed = speed; }
-    
+
     /// Get playback speed
     float get_speed() const { return _speed; }
-    
+
     /// Get current time in animation
     float get_current_time() const { return _current_time; }
-    
+
     /// Set current time in animation
     void set_current_time(float time) { _current_time = time; }
-    
+
     /// Get animation progress (0.0 to 1.0)
     float get_progress() const;
+
+    /// Check if currently blending between animations
+    bool is_blending() const { return _blend_factor < 1.0f; }
 
 private:
     std::shared_ptr<AnimationClip> _clip;
@@ -149,6 +158,13 @@ private:
     float _speed = 1.0f;
     bool _playing = false;
     bool _looping = true;
+
+    // Blending state
+    std::shared_ptr<AnimationClip> _prev_clip;
+    float _prev_time = 0.0f;
+    bool _prev_looping = true;
+    float _blend_factor = 1.0f;  // 0 = fully prev, 1 = fully current
+    float _blend_duration = 0.0f;
 };
 
 }  // namespace engine::pbr
